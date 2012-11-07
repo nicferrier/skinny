@@ -1,0 +1,5 @@
+skinny is a blog engine written with [[http://elnode.org|Elnode]].
+
+It serves files written in Creole Wiki format as blog entries. It
+allows customization with CSS files and headers and footers.
+
