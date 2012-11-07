@@ -73,6 +73,6 @@
   (interactive)
   (elnode-start 'skinny-router :port skinny-port))
 
-(provide 'bliki)
+(provide 'skinny)
 
-;;; bliki.el ends here
+;;; skinny.el ends here
