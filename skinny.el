@@ -60,19 +60,75 @@
              :body-header body-header
              :body-footer body-footer)))))
 
+(defun skinny-redirector (httpcon)
+  "Redirect non creole pages to creole."
+  (let ((targetfile (elnode-http-mapping httpcon 1)))
+    (flet ((elnode-http-mapping (httpcon which)
+             (concat targetfile ".creole")))
+      (skinny-page httpcon))))
+
+(defun skinny/directory-files (directory &rest excludes)
+  "List DIRECTORY entries that do not match one of EXCLUDES."
+  (loop for e in (directory-files directory t)
+     unless (loop for re in excludes
+                 if (string-match re e)
+                 return t)
+     collect e))
+
+(defun skinny/directory-p (name)
+  "Is NAME a directory?"
+  (eq t (elt (file-attributes name) 0)))
+
+(defun skinny/list-published ()
+  "Produce the list of published files.
+
+Published files are those not in the `drafts' folder."
+  (let* ((excludes (list ".*/\\.*#.*"
+                         ".*~"
+                         ".*/drafts\\(/.*\\)*"
+                         ".*/\\."))
+         (files (loop for entry in
+                     (apply 'skinny/directory-files
+                            (concat skinny-root "/blog") excludes)
+                   if (skinny/directory-p entry)
+                   append (apply 'skinny/directory-files
+                                 entry excludes))))
+    (sort files
+          (lambda (a b)
+            (time-less-p
+             (elt (file-attributes a) 5)
+             (elt (file-attributes b) 5))))))
+
+(defun skinny-homepage (httpcon)
+  "The homepage.
+
+Finds the latest published post and makes that the page."
+  (let* ((top (car (last (skinny/list-published))))
+         (root-re (concat (expand-file-name skinny-root) "/blog/\\(.*\\)"))
+         (top-path (progn
+                     (string-match root-re top)
+                     (concat "/" (match-string 1 top))))
+         (targetfile (elnode-http-mapping httpcon 1)))
+    (flet ((elnode-http-mapping (httpcon which)
+             top-path))
+      (skinny-page httpcon))))
+
 (defun skinny-router (httpcon)
+  "Direct urls properly."
   (let ((webserver
          (elnode-webserver-handler-maker
           (concat skinny-root "/stuff"))))
     (elnode-hostpath-dispatcher
      httpcon
-     `(("^[^/]+//blog/\\(.*\\)" . skinny-page)
-       ("^[^/]+//stuff/\\(.*\\)" . ,webserver)))))
+     `(("^[^/]+//blog/\\(.*\\.creole\\)" . skinny-page)
+       ("^[^/]+//blog/\\(.*\\)" . skinny-redirector)
+       ("^[^/]+//stuff/\\(.*\\)" . ,webserver)
+       ("^[^/]+//$" . skinny-homepage)))))
 
 (defun skinny-start ()
   (interactive)
   (elnode-start 'skinny-router :port skinny-port))
 
-(provide 'bliki)
+(provide 'skinny)
 
-;;; bliki.el ends here
+;;; skinny.el ends here
