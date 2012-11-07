@@ -45,7 +45,8 @@
   (let ((css (concat skinny-root "/stuff/css/site.css"))
         (body-header (concat skinny-root "/template/headerhtml"))
         (body-footer (concat skinny-root "/template/footerhtml"))
-        (skinny-docroot (concat skinny-root "/blog")))
+        (skinny-docroot (concat skinny-root "/blog"))
+        (creole-image-class "creole"))
     (elnode-docroot-for skinny-docroot
         with page
         on httpcon
