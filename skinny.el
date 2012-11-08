@@ -4,7 +4,7 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: hypermedia
-;; Version: 0.0.3
+;; Version: 0.0.4
 ;; Package-Requires: ((elnode "0.9.9.6.1")(creole "0.8.17"))
 
 ;; This program is free software; you can redistribute it and/or modify
