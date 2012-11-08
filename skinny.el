@@ -120,16 +120,29 @@ Finds the latest published post and makes that the page."
              top-path))
       (skinny-page httpcon))))
 
+(defun skinny-feed (httpcon)
+  "For now a dummy feed."
+  (elnode-http-start httpcon 200 '("Content-type" . "application/xml"))
+  (elnode-http-return httpcon "<?xml version='1.0'?>"))
+
 (defun skinny-router (httpcon)
   "Direct urls properly."
   (let ((webserver
          (elnode-webserver-handler-maker
-          (concat skinny-root "/stuff"))))
+          (concat skinny-root "/stuff")))
+        (favicon-sender
+         (elnode-make-send-file
+          (concat
+           (expand-file-name skinny-root)
+           "/stuff/ico/favicon.ico"))))
     (elnode-hostpath-dispatcher
      httpcon
-     `(("^[^/]+//blog/\\(.*\\.creole\\)" . skinny-page)
+     `(("^[^/]+//blog/feed.xml$" . skinny-feed)
+       ("^[^/]+//blog/\\(.*\\.creole\\)" . skinny-page)
        ("^[^/]+//blog/\\(.*\\)" . skinny-redirector)
        ("^[^/]+//stuff/\\(.*\\)" . ,webserver)
+       ;; Deal with the favicon
+       ("^[^/]+//favicon.ico" . ,favicon-sender)
        ("^[^/]+//$" . skinny-homepage)))))
 
 ;;;###autoload
