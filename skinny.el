@@ -4,8 +4,8 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: hypermedia
-;; Version: 0.0.1
-;; Package-Requires: ((elnode "0.9.9.6.2")(creole "0.8.17"))
+;; Version: 0.0.3
+;; Package-Requires: ((elnode "0.9.9.6.1")(creole "0.8.17"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -42,6 +42,11 @@
   "The TCP port to start talking hipster shite on."
   :group 'skinny
   :type 'integer)
+
+(defcustom skinny-host "localhost"
+  "The interface to start talking hipster shite on."
+  :group 'skinny
+  :type 'string)
 
 (defun skinny-page (httpcon)
   (let ((css (concat skinny-root "/stuff/css/site.css"))
@@ -127,9 +132,10 @@ Finds the latest published post and makes that the page."
        ("^[^/]+//stuff/\\(.*\\)" . ,webserver)
        ("^[^/]+//$" . skinny-homepage)))))
 
+;;;###autoload
 (defun skinny-start ()
   (interactive)
-  (elnode-start 'skinny-router :port skinny-port))
+  (elnode-start 'skinny-router :port skinny-port :host skinny-host))
 
 (provide 'skinny)
 
