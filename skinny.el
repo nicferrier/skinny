@@ -126,7 +126,7 @@ Finds the latest published post and makes that the page."
   (elnode-http-return httpcon "<?xml version='1.0'?>"))
 
 (defun skinny-router (httpcon)
-  "Direct urls properly."
+  "Skinny the blog engine's url router."
   (let ((webserver
          (elnode-webserver-handler-maker
           (concat skinny-root "/stuff")))
