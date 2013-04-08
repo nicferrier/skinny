@@ -104,10 +104,6 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
                  return t)
      collect e))
 
-(defun skinny/directory-p (name)
-  "Is NAME a directory?"
-  (eq t (elt (file-attributes name) 0)))
-
 (defun skinny/list-published ()
   "Produce the list of published files.
 
@@ -119,7 +115,7 @@ Published files are those not in the `drafts' folder."
          (files (loop for entry in
                      (apply 'skinny/directory-files
                             (concat skinny-root skinny-blog-dir) excludes)
-                   if (skinny/directory-p entry)
+                   if (file-directory-p entry)
                    append (apply 'skinny/directory-files
                                  entry excludes))))
     (sort files
