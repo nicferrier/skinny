@@ -33,28 +33,50 @@
   "A blog engine written with Elnode. Good for hipsters."
   :group 'applications)
 
-(defcustom skinny-root ""
-  "The directory used tostore the skinny docroot."
-  :group 'skinny
-  :type 'directory)
-
 (defcustom skinny-port 8090
   "The TCP port to start talking hipster shite on."
-  :group 'skinny
-  :type 'integer)
+  :type '(integer)
+  :group 'skinny)
 
 (defcustom skinny-host "localhost"
   "The interface to start talking hipster shite on."
-  :group 'skinny
-  :type 'string)
+  :type '(string)
+  :group 'skinny)
+
+(defgroup skinny-dirs nil
+  "Various directories for the Skinny blog.
+All paths are relative to `skinny-root'."
+  :group 'skinny)
+
+(defcustom skinny-root skinny-dir
+  "The root directory of the Skinny site.
+By default, this is the directory from which Skinny was loaded.
+Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
+  :type '(directory)
+  :group 'skinny-dirs)
+
+(defcustom skinny-blog-dir "blog/"
+  "The directory for blog posts."
+  :type '(directory)
+  :group 'skinny-dirs)
+
+(defcustom skinny-css-dir "css/"
+  "The directory for CSS files."
+  :type '(directory)
+  :group 'skinny-dirs)
+
+(defcustom skinny-image-dir "images/"
+  "The directory for images."
+  :type '(directory)
+  :group 'skinny-dirs)
 
 (defun skinny-page (httpcon)
-  (let ((css (concat skinny-root "/stuff/css/site.css"))
+  (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
         (body-header (concat skinny-root "/template/headerhtml"))
         (body-footer (concat skinny-root "/template/footerhtml"))
-        (skinny-docroot (concat skinny-root "/blog"))
+        (css (concat skinny-root skinny-css-dir))
         (creole-image-class "creole"))
-    (elnode-docroot-for skinny-docroot
+    (elnode-docroot-for skinny-blog-dir
         with page
         on httpcon
         do
@@ -62,7 +84,7 @@
         (with-stdout-to-elnode httpcon
             (creole-wiki page
              :destination t
-             :docroot skinny-root
+             :docroot skinny-blog-dir
              :css (list css)
              :body-header body-header
              :body-footer body-footer)))))
@@ -96,7 +118,7 @@ Published files are those not in the `drafts' folder."
                          ".*/\\."))
          (files (loop for entry in
                      (apply 'skinny/directory-files
-                            (concat skinny-root "/blog") excludes)
+                            (concat skinny-root skinny-blog-dir) excludes)
                    if (skinny/directory-p entry)
                    append (apply 'skinny/directory-files
                                  entry excludes))))
