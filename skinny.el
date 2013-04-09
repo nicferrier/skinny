@@ -27,7 +27,8 @@
 
 ;;; Code:
 
-(elnode-app skinny-dir creole)
+(elnode-app skinny-dir
+  creole esxml)
 
 (defgroup skinny nil
   "A blog engine written with Elnode. Good for hipsters."
@@ -70,73 +71,73 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
   :type '(directory)
   :group 'skinny-dirs)
 
-(defun skinny-page (httpcon)
+(defun skinny-post (httpcon)
+  "Return a rendered creole blog post via HTTPCON."
   (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
         (body-header (concat skinny-root "/template/headerhtml"))
         (body-footer (concat skinny-root "/template/footerhtml"))
         (css (concat skinny-root skinny-css-dir))
         (creole-image-class "creole"))
     (elnode-docroot-for skinny-blog-dir
-        with page
+        with post
         on httpcon
         do
+        (elnode-error "Sending blog post: %s" post)
         (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
         (with-stdout-to-elnode httpcon
-            (creole-wiki page
+            (creole-wiki post
              :destination t
              :docroot skinny-blog-dir
              :css (list css)
              :body-header body-header
              :body-footer body-footer)))))
 
+(defun skinny-index-page (httpcon)
+  "Return the index page via HTTPCON."
+  (let ((page (concat skinny-root "index.html")))
+    (elnode-error "Sending index page.")
+    (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
+    (elnode-http-send-string httpcon
+     (with-temp-buffer
+       (insert-file-contents page)
+       (while (search-forward "<!--{{{posts}}}-->" nil t)
+         (replace-match (esxml-to-xml (skinny/posts-html-list)) nil t))
+       (buffer-string)))
+    (elnode-http-return httpcon)))
+
 (defun skinny-redirector (httpcon)
   "Redirect non creole pages to creole."
   (let ((targetfile (elnode-http-mapping httpcon 1)))
     (flet ((elnode-http-mapping (httpcon which)
              (concat targetfile ".creole")))
-      (skinny-page httpcon))))
+      (skinny-post httpcon))))
 
-(defun skinny/directory-files (directory &rest excludes)
-  "List DIRECTORY entries that do not match one of EXCLUDES."
-  (loop for e in (directory-files directory t)
-     unless (loop for re in excludes
-                 if (string-match re e)
-                 return t)
-     collect e))
+(defun skinny/list-posts ()
+  "Produce the list of blog posts, sorted by mtime.
 
-(defun skinny/list-published ()
-  "Produce the list of published files.
+Posts are all \"*.creole\" files in `skinny-blog-dir'."
+  (sort
+   (directory-files (concat skinny-root skinny-blog-dir) t ".*\\.creole\\'" t)
+   (lambda (a b)
+     (time-less-p
+      (elt (file-attributes a) 5)
+      (elt (file-attributes b) 5)))))
 
-Published files are those not in the `drafts' folder."
-  (let* ((excludes (list ".*/\\.*#.*"
-                         ".*~"
-                         ".*/drafts\\(/.*\\)*"
-                         ".*/\\."))
-         (files (loop for entry in
-                     (apply 'skinny/directory-files
-                            (concat skinny-root skinny-blog-dir) excludes)
-                   if (file-directory-p entry)
-                   append (apply 'skinny/directory-files
-                                 entry excludes))))
-    (sort files
-          (lambda (a b)
-            (time-less-p
-             (elt (file-attributes a) 5)
-             (elt (file-attributes b) 5))))))
-
-(defun skinny-homepage (httpcon)
-  "The homepage.
-
-Finds the latest published post and makes that the page."
-  (let* ((top (car (last (skinny/list-published))))
-         (root-re (concat (expand-file-name skinny-root) "/blog/\\(.*\\)"))
-         (top-path (progn
-                     (string-match root-re top)
-                     (concat "/" (match-string 1 top))))
-         (targetfile (elnode-http-mapping httpcon 1)))
-    (flet ((elnode-http-mapping (httpcon which)
-             top-path))
-      (skinny-page httpcon))))
+(defun skinny/posts-html-list ()
+  "Produce an HTML list of the posts.
+Each post's title is listed, and links to the post itself.
+HTML is returned as ESXML, rather than a string."
+  (esxml-listify
+   (mapcar
+    (lambda (post-file-name)
+      (esxml-link
+       (save-match-data
+         (string-match (expand-file-name
+                        (format "%s\\(%s.*\\.creole\\)" skinny-root skinny-blog-dir))
+                       post-file-name)
+         (match-string 1 post-file-name))
+       "FIXME: post-title"))
+    (skinny/list-posts))))
 
 (defun skinny-feed (httpcon)
   "For now a dummy feed."
@@ -147,7 +148,7 @@ Finds the latest published post and makes that the page."
   "Skinny the blog engine's url router."
   (let ((webserver
          (elnode-webserver-handler-maker
-          (concat skinny-root "/stuff")))
+          skinny-root))
         (favicon-sender
          (elnode-make-send-file
           (concat
@@ -156,12 +157,12 @@ Finds the latest published post and makes that the page."
     (elnode-hostpath-dispatcher
      httpcon
      `(("^[^/]+//blog/feed.xml$" . skinny-feed)
-       ("^[^/]+//blog/\\(.*\\.creole\\)" . skinny-page)
+       ("^[^/]+//blog/\\(.*\\.creole\\)" . skinny-post)
        ("^[^/]+//blog/\\(.*\\)" . skinny-redirector)
        ("^[^/]+//stuff/\\(.*\\)" . ,webserver)
        ;; Deal with the favicon
        ("^[^/]+//favicon.ico" . ,favicon-sender)
-       ("^[^/]+//$" . skinny-homepage)))))
+       ("^[^/]+//$" . skinny-index-page)))))
 
 ;;;###autoload
 (defun skinny-start ()
