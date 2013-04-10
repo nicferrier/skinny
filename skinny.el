@@ -156,13 +156,11 @@ HTML is returned as ESXML, rather than a string."
            "/stuff/ico/favicon.ico"))))
     (elnode-hostpath-dispatcher
      httpcon
-     `(("^[^/]+//blog/feed.xml$" . skinny-feed)
-       ("^[^/]+//blog/\\(.*\\.creole\\)" . skinny-post)
-       ("^[^/]+//blog/\\(.*\\)" . skinny-redirector)
-       ("^[^/]+//stuff/\\(.*\\)" . ,webserver)
-       ;; Deal with the favicon
-       ("^[^/]+//favicon.ico" . ,favicon-sender)
-       ("^[^/]+//$" . skinny-index-page)))))
+     `((,(format "^[^/]+//%s/feed.xml$" skinny-blog-dir) . skinny-feed)
+       (,(format "^[^/]+//%s/\\(.*\\.creole\\)" skinny-blog-dir) . skinny-post)
+       (,(format "^[^/]+//%s/\\(.*\\)" skinny-blog-dir) . skinny-redirector)
+       ("^[^/]+//$" . skinny-index-page)
+       ("^[^/]+//\\(.*\\)" . ,webserver)))))
 
 ;;;###autoload
 (defun skinny-start ()
