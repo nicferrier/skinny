@@ -148,17 +148,12 @@ HTML is returned as ESXML, rather than a string."
   "Skinny the blog engine's url router."
   (let ((webserver
          (elnode-webserver-handler-maker
-          skinny-root))
-        (favicon-sender
-         (elnode-make-send-file
-          (concat
-           (expand-file-name skinny-root)
-           "/stuff/ico/favicon.ico"))))
+          skinny-root)))
     (elnode-hostpath-dispatcher
      httpcon
-     `((,(format "^[^/]+//%s/feed.xml$" skinny-blog-dir) . skinny-feed)
-       (,(format "^[^/]+//%s/\\(.*\\.creole\\)" skinny-blog-dir) . skinny-post)
-       (,(format "^[^/]+//%s/\\(.*\\)" skinny-blog-dir) . skinny-redirector)
+     `((,(format "^[^/]+//%sfeed.xml$" skinny-blog-dir) . skinny-feed)
+       (,(format "^[^/]+//%s\\(.*\\.creole\\)" skinny-blog-dir) . skinny-post)
+       (,(format "^[^/]+//%s\\(.*\\)" skinny-blog-dir) . skinny-redirector)
        ("^[^/]+//$" . skinny-index-page)
        ("^[^/]+//\\(.*\\)" . ,webserver)))))
 
