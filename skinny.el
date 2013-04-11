@@ -44,6 +44,11 @@
   :type '(string)
   :group 'skinny)
 
+(defcustom skinny-blog-css-file-name "blog.css"
+  "The name of the CSS file to use for blog posts."
+  :type '(file)
+  :group 'skinny)
+
 (defgroup skinny-dirs nil
   "Various directories for the Skinny blog.
 All paths are relative to `skinny-root'."
@@ -74,8 +79,6 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
 (defun skinny-post (httpcon)
   "Return a rendered creole blog post via HTTPCON."
   (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
-        (body-header (concat skinny-root "/template/headerhtml"))
-        (body-footer (concat skinny-root "/template/footerhtml"))
         (css (concat skinny-root skinny-css-dir))
         (creole-image-class "creole"))
     (elnode-docroot-for skinny-blog-dir
@@ -84,13 +87,24 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
         do
         (elnode-error "Sending blog post: %s" post)
         (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
-        (with-stdout-to-elnode httpcon
-            (creole-wiki post
-             :destination t
-             :docroot skinny-blog-dir
-             :css (list css)
-             :body-header body-header
-             :body-footer body-footer)))))
+        (elnode-http-send-string httpcon
+         (pp-esxml-to-xml
+          `(html ()
+             ,(esxml-head "FIXME: post-title"
+                '(meta ((charset . "UTF-8")))
+                ;;(meta 'author FIXME)
+                (css-link skinny-blog-css-file-name)
+                (link 'alternate "application/atom+xml"
+                      (concat skinny-root skinny-blog-dir "feed.xml")
+                      '((title . "site feed"))))
+             (body ()
+               ,(with-temp-buffer
+                  (insert-file-contents post)
+                  (with-current-buffer
+                      (creole-html (current-buffer) nil
+                                   :do-font-lock t)
+                    (buffer-string)))))))
+        (elnode-http-return httpcon))))
 
 (defun skinny-index-page (httpcon)
   "Return the index page via HTTPCON."
