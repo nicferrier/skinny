@@ -44,6 +44,11 @@
   :type '(string)
   :group 'skinny)
 
+(defcustom skinny-blog-name "skinny"
+  "The name of the blog."
+  :type '(string)
+  :group 'skinny)
+
 (defcustom skinny-blog-css-file-name "blog.css"
   "The name of the CSS file to use for blog posts."
   :type '(file)
@@ -156,7 +161,7 @@ HTML is returned as ESXML, rather than a string."
     `(feed ((xmlns . "http://www.w3.org/2005/Atom")
             (xml:lang . "en"))
        ;; Feed metadata.
-       (title () "FIXME: blog title")
+       (title () ,skinny-blog-name)
        (link ((href . "FIXME: absolute feed URL")
               (rel . "self")))
        (link ((href . "./")))
