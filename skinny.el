@@ -123,7 +123,7 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
     (elnode-http-return httpcon)))
 
 (defun skinny/list-posts ()
-  "Produce the list of blog posts, sorted by mtime.
+  "Produce the list of blog posts (file names), sorted by mtime.
 
 Posts are all \"*.creole\" files in `skinny-blog-dir'."
   (sort
