@@ -169,7 +169,8 @@ HTML is returned as ESXML, rather than a string."
           (lambda (post)
             `(entry ()
                (title () "FIXME: post-title")
-               (link ((href . ,(file-name-sans-extension post))))
+               (link ((href . ,(file-name-sans-extension
+                                (file-name-nondirectory post)))))
                (id () "urn:uuid:FIXME")
                (updated () "FIXME: timestamp")
                (summary ((type . "xhtml"))
