@@ -149,10 +149,39 @@ HTML is returned as ESXML, rather than a string."
        "FIXME: post-title"))
     (skinny/list-posts))))
 
+(defun skinny/feed ()
+  "Generate an Atom feed from the most recent posts."
+  (concat "<?xml version=\"1.0\"?>"
+   (pp-esxml-to-xml
+    `(feed ((xmlns . "http://www.w3.org/2005/Atom")
+            (xml:lang . "en"))
+       ;; Feed metadata.
+       (title () "FIXME: blog title")
+       (link ((href . "FIXME: absolute feed URL")
+              (rel . "self")))
+       (link ((href . "./")))
+       (id () "urn:uuid:FIXME")
+       (updated () "FIXME: timestamp")
+       (author ()
+         (name () "FIXME: author"))
+       ;; Now for the entries.
+       ,@(mapcar
+          (lambda (post)
+            `(entry ()
+               (title () "FIXME: post-title")
+               (link ((href . ,(file-name-sans-extension post))))
+               (id () "urn:uuid:FIXME")
+               (updated () "FIXME: timestamp")
+               (summary ((type . "xhtml"))
+                 (div ((xmlns . "http://www.w3.org/1999/xhtml"))
+                      "FIXME: post summary"))))
+          (skinny/list-posts))))))
+
 (defun skinny-feed (httpcon)
-  "For now a dummy feed."
+  "Return a blog feed via HTTPCON.
+Calls `skinny/feed' to generate the feed."
   (elnode-http-start httpcon 200 '("Content-type" . "application/xml"))
-  (elnode-http-return httpcon "<?xml version='1.0'?>"))
+  (elnode-http-return httpcon (skinny/feed)))
 
 (defun skinny-router (httpcon)
   "Skinny the blog engine's url router."
