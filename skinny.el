@@ -80,31 +80,34 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
   "Return a rendered creole blog post via HTTPCON."
   (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
         (css (concat skinny-root skinny-css-dir))
-        (creole-image-class "creole"))
-    (elnode-docroot-for skinny-blog-dir
-        with post
-        on httpcon
-        do
-        (elnode-error "Sending blog post: %s" post)
-        (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
-        (elnode-http-send-string httpcon
+        (creole-image-class "creole")
+        (targetfile (elnode-http-mapping httpcon 1)))
+    (flet ((elnode-http-mapping (httpcon which)
+            (concat targetfile ".creole")))
+     (elnode-docroot-for skinny-blog-dir
+       with post
+       on httpcon
+       do
+       (elnode-error "Sending blog post: %s" post)
+       (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
+       (elnode-http-send-string httpcon
          (pp-esxml-to-xml
-          `(html ()
-             ,(esxml-head "FIXME: post-title"
-                '(meta ((charset . "UTF-8")))
-                ;;(meta 'author FIXME)
-                (css-link skinny-blog-css-file-name)
-                (link 'alternate "application/atom+xml"
-                      (concat skinny-root skinny-blog-dir "feed.xml")
-                      '((title . "site feed"))))
-             (body ()
-               ,(with-temp-buffer
-                  (insert-file-contents post)
-                  (with-current-buffer
-                      (creole-html (current-buffer) nil
-                                   :do-font-lock t)
-                    (buffer-string)))))))
-        (elnode-http-return httpcon))))
+           `(html ()
+              ,(esxml-head "FIXME: post-title"
+                 '(meta ((charset . "UTF-8")))
+                 ;;(meta 'author FIXME)
+                 (css-link skinny-blog-css-file-name)
+                 (link 'alternate "application/atom+xml"
+                       (concat skinny-root skinny-blog-dir "feed.xml")
+                       '((title . "site feed"))))
+              (body ()
+                ,(with-temp-buffer
+                   (insert-file-contents post)
+                   (with-current-buffer
+                       (creole-html (current-buffer) nil
+                                    :do-font-lock t)
+                     (buffer-string)))))))
+       (elnode-http-return httpcon)))))
 
 (defun skinny-index-page (httpcon)
   "Return the index page via HTTPCON."
@@ -118,13 +121,6 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
          (replace-match (esxml-to-xml (skinny/posts-html-list)) nil t))
        (buffer-string)))
     (elnode-http-return httpcon)))
-
-(defun skinny-redirector (httpcon)
-  "Redirect non creole pages to creole."
-  (let ((targetfile (elnode-http-mapping httpcon 1)))
-    (flet ((elnode-http-mapping (httpcon which)
-             (concat targetfile ".creole")))
-      (skinny-post httpcon))))
 
 (defun skinny/list-posts ()
   "Produce the list of blog posts, sorted by mtime.
@@ -149,7 +145,7 @@ HTML is returned as ESXML, rather than a string."
          (string-match (expand-file-name
                         (format "%s\\(%s.*\\.creole\\)" skinny-root skinny-blog-dir))
                        post-file-name)
-         (match-string 1 post-file-name))
+         (file-name-sans-extension (match-string 1 post-file-name)))
        "FIXME: post-title"))
     (skinny/list-posts))))
 
@@ -166,8 +162,7 @@ HTML is returned as ESXML, rather than a string."
     (elnode-hostpath-dispatcher
      httpcon
      `((,(format "^[^/]+//%sfeed.xml$" skinny-blog-dir) . skinny-feed)
-       (,(format "^[^/]+//%s\\(.*\\.creole\\)" skinny-blog-dir) . skinny-post)
-       (,(format "^[^/]+//%s\\(.*\\)" skinny-blog-dir) . skinny-redirector)
+       (,(format "^[^/]+//%s\\(.*\\)" skinny-blog-dir) . skinny-post)
        ("^[^/]+//$" . skinny-index-page)
        ("^[^/]+//\\(.*\\)" . ,webserver)))))
 
