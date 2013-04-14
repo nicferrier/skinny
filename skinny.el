@@ -65,6 +65,14 @@ http://www.w3.org/International/articles/language-tags/"
   :type '(repeat file)
   :group 'skinny)
 
+(defcustom skinny-blog-article-class nil
+  "<article> class attribute.
+
+If set, use as the value of the class attribute for the blog post
+<article>."
+  :type '(string)
+  :group 'skinny)
+
 (defgroup skinny-dirs nil
   "Various directories for the Skinny blog.
 All paths are relative to `skinny-root'."
@@ -126,7 +134,8 @@ Must be an immediate subdirectory of `skinny-root'."
                     (esxml-head-css-link (concat "../" skinny-css-dir css)))
                   skinny-blog-css-file-names))
                (body ()
-                 (article ()
+                 (article ,(when skinny-blog-article-class
+                             `((class . ,skinny-blog-article-class)))
                    (header ()
                      ,(cdr (assoc 'title metadata))
                      (br ())
