@@ -2,70 +2,39 @@
 
 Skinny is a blog engine written with [[http://elnode.org|Elnode]].
 
-It serves files written in Creole Wiki format as blog entries. It
+It serves files written in Creole format as blog entries. It
 allows customization with CSS files and headers and footers.
 
 == Blog directory structure ==
 
-Skinny has a fixed directory structure right now. It looks like this:
+The default site structure is as follows:
 
 {{{
-blogroot/
-  template/
-    headerhtml
-    footerhtml
-  stuff/
-    css/
-      site.css
-    ico/
-       favicon.ico
-    img/
-       name-of-some-image.png
+site-root/
+  index.html
+  static-pages.html
   blog/
-    201212/
-       name-of-blog-entry.creole
-       other-blog-entry.creole
-    201301/
-       latest-blog-entry.creole
+    example.creole
+  css/
+    blog.css
+    other.css
+  images/
+    emacs.png
 }}}
 
-Blog entries are served from {{{blog/}}} and should be separated out
-by date.
-
-The favicon, site css and template files are all fixed for
-now. Configuration for those coming later.
-
+All {{{.html}}} files are served as static pages, except for
+{{{index.html}}}, in which {{{<!--{{{posts}}}-->}}} is replaced with a
+list of recent posts.
 
 == Configuring Skinny ==
 
-You can configure skinny with Emacs' Customize:
+You can configure skinny with Emacs's Customize:
 
 {{{
 M-x customize-group skinny
 }}}
 
-Here is what you get:
-
-{{{
-Skinny group: 
-       State : something in this group has been set and saved.
-   A blog engine written with Elnode. Good for hipsters.
-
-Skinny Host: localhost
-    State : STANDARD.
-   The interface to start talking hipster shite on.
-
-Skinny Port: 8090
-    State : STANDARD.
-   The TCP port to start talking hipster shite on.
-
-Skinny Root: ~/myblog
-    State : SAVED and set.
-   The directory used tostore the skinny docroot.
-}}}
-
-Set {{{skinny-root}}} to the root directory of your blog and
-skinny-port to whatever port you want to use to serve Skinny.
+The option docstrings are pretty self-explanatory.
 
 == Starting Skinny ==
 
