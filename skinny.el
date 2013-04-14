@@ -123,8 +123,9 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
     (elnode-http-send-string httpcon
      (with-temp-buffer
        (insert-file-contents page)
-       (while (search-forward "<!--{{{posts}}}-->" nil t)
-         (replace-match (esxml-to-xml (skinny/posts-html-list)) nil t))
+       (save-match-data
+        (while (search-forward "<!--{{{posts}}}-->" nil t)
+          (replace-match (esxml-to-xml (skinny/posts-html-list)) nil t)))
        (buffer-string)))
     (elnode-http-return httpcon)))
 
