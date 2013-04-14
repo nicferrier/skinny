@@ -108,7 +108,8 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
                     '((title . "site feed"))))
                (body ()
                  ,(with-temp-buffer
-                    (insert-file-contents post)
+                    (save-match-data
+                     (insert-file-contents post))
                     (with-current-buffer
                         (creole-html (current-buffer) nil
                                      :do-font-lock t)
@@ -122,8 +123,8 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
     (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
     (elnode-http-send-string httpcon
      (with-temp-buffer
-       (insert-file-contents page)
        (save-match-data
+         (insert-file-contents page)
         (while (search-forward "<!--{{{posts}}}-->" nil t)
           (replace-match (esxml-to-xml (skinny/posts-html-list)) nil t)))
        (buffer-string)))
@@ -169,8 +170,9 @@ author -- Just the author name, not name then email.
 timestamp -- RFC3339 format
 UUID -- Used for the id of feed entries; see RFC4287."
   (with-temp-buffer
-    (insert-file-contents
-     (concat (file-name-sans-extension post) ".el"))
+    (save-match-data
+     (insert-file-contents
+      (concat (file-name-sans-extension post) ".el")))
     (read (current-buffer))))
 
 (defun skinny/feed ()
