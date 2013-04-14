@@ -60,9 +60,9 @@ http://www.w3.org/International/articles/language-tags/"
   :type '(string)
   :group 'skinny)
 
-(defcustom skinny-blog-css-file-name "blog.css"
-  "The name of the CSS file to use for blog posts."
-  :type '(file)
+(defcustom skinny-blog-css-file-names '("blog.css")
+  "The names of the CSS files to use for blog posts."
+  :type '(repeat file)
   :group 'skinny)
 
 (defgroup skinny-dirs nil
@@ -114,15 +114,17 @@ Must be an immediate subdirectory of `skinny-root'."
          (let ((metadata (skinny/post-meta-data post)))
            (pp-esxml-to-xml
             `(html ((lang . ,skinny-lang))
-               ,(esxml-head (cdr (assoc 'title metadata))
-                  '(meta ((charset . "UTF-8")))
-                  (meta 'author (cdr (assoc 'author metadata)))
-                  (css-link (concat "../"
-                                    skinny-css-dir
-                                    skinny-blog-css-file-name))
-                  (link 'alternate "application/atom+xml"
-                    (concat skinny-root skinny-blog-dir "feed.xml")
-                    '((title . "site feed"))))
+               ,(append
+                 (esxml-head (cdr (assoc 'title metadata))
+                   '(meta ((charset . "UTF-8")))
+                   (meta 'author (cdr (assoc 'author metadata)))
+                   (link 'alternate "application/atom+xml"
+                         (concat skinny-root skinny-blog-dir "feed.xml")
+                         '((title . "site feed"))))
+                 (mapcar
+                  (lambda (css)
+                    (esxml-head-css-link (concat "../" skinny-css-dir css)))
+                  skinny-blog-css-file-names))
                (body ()
                  (article ()
                    (header ()
