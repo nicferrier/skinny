@@ -49,6 +49,17 @@
   :type '(string)
   :group 'skinny)
 
+(defcustom skinny-lang "en"
+  "The language code for the blog.
+
+The code for the language in which the blog is written.  This is
+used as the value for the <html> lang attribute, and the <feed>
+xml:lang attribute.  See the W3C article on language tags for
+available language codes:
+http://www.w3.org/International/articles/language-tags/"
+  :type '(string)
+  :group 'skinny)
+
 (defcustom skinny-blog-css-file-name "blog.css"
   "The name of the CSS file to use for blog posts."
   :type '(file)
@@ -102,7 +113,7 @@ Must be an immediate subdirectory of `skinny-root'."
        (elnode-http-send-string httpcon
          (let ((metadata (skinny/post-meta-data post)))
            (pp-esxml-to-xml
-            `(html ()
+            `(html ((lang . ,skinny-lang))
                ,(esxml-head (cdr (assoc 'title metadata))
                   '(meta ((charset . "UTF-8")))
                   (meta 'author (cdr (assoc 'author metadata)))
@@ -195,7 +206,7 @@ UUID -- Used for the id of feed entries; see RFC4287."
     (concat "<?xml version=\"1.0\"?>"
       (pp-esxml-to-xml
         `(feed ((xmlns . "http://www.w3.org/2005/Atom")
-                (xml:lang . "en"))
+                (xml:lang . ,skinny-lang))
            ;; Feed metadata.
            (title () ,skinny-blog-name)
            (link ((href . "FIXME: absolute feed URL")
