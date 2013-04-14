@@ -113,13 +113,19 @@ Must be an immediate subdirectory of `skinny-root'."
                     (concat skinny-root skinny-blog-dir "feed.xml")
                     '((title . "site feed"))))
                (body ()
-                 ,(with-temp-buffer
-                    (save-match-data
-                     (insert-file-contents post))
-                    (with-current-buffer
-                        (creole-html (current-buffer) nil
-                                     :do-font-lock t)
-                      (buffer-string))))))))
+                 (post ()
+                   (header ()
+                     ,(cdr (assoc 'title metadata))
+                     (br ())
+                     (span ((class . "timestamp"))
+                      ,(cdr (assoc 'timestamp metadata))))
+                   ,(with-temp-buffer
+                      (save-match-data
+                        (insert-file-contents post))
+                      (with-current-buffer
+                          (creole-html (current-buffer) nil
+                                       :do-font-lock t)
+                        (buffer-string)))))))))
        (elnode-http-return httpcon)))))
 
 (defun skinny-index-page (httpcon)
