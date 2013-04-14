@@ -113,7 +113,7 @@ Must be an immediate subdirectory of `skinny-root'."
                     (concat skinny-root skinny-blog-dir "feed.xml")
                     '((title . "site feed"))))
                (body ()
-                 (post ()
+                 (article ()
                    (header ()
                      ,(cdr (assoc 'title metadata))
                      (br ())
