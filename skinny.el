@@ -111,6 +111,51 @@ Must be an immediate subdirectory of `skinny-root'."
   :type '(directory)
   :group 'skinny-dirs)
 
+(defun skinny/post-meta-data (post)
+  "Return corresponding meta-data file for POST file.
+
+Takes the file name of a \".creole\" blog post, and reads the
+corresponding \".el\" file, which should contain only a single
+alist with the following fields:
+
+title
+author (optional) -- Just the author name, not name then email.
+timestamp -- RFC3339 format
+UUID -- Used for the id of feed entries; see RFC4287."
+  (with-temp-buffer
+    (save-match-data
+     (insert-file-contents
+      (concat (file-name-sans-extension post) ".el")))
+    (read (current-buffer))))
+
+(defun skinny/list-posts ()
+  "Produce the list of blog posts (file names), sorted by mtime.
+
+Posts are all \"*.creole\" files in `skinny-blog-dir'."
+  (sort
+   (directory-files (concat skinny-root skinny-blog-dir) t ".*\\.creole\\'" t)
+   (lambda (a b)
+     (time-less-p
+      (elt (file-attributes a) 5)
+      (elt (file-attributes b) 5)))))
+
+(defun skinny/posts-html-list ()
+  "Produce an HTML list of the posts.
+Each post's title is listed, and links to the post itself.
+HTML is returned as ESXML, rather than a string."
+  (esxml-listify
+   (mapcar
+    (lambda (post)
+      (let ((metadata (skinny/post-meta-data post)))
+        (esxml-link
+         (save-match-data
+           (string-match (expand-file-name
+                          (format "%s\\(%s.*\\.creole\\)" skinny-root skinny-blog-dir))
+                         post)
+           (file-name-sans-extension (match-string 1 post)))
+         (cdr (assoc 'title metadata)))))
+    (skinny/list-posts))))
+
 (defun skinny-post (httpcon)
   "Return a rendered creole blog post via HTTPCON."
   (let ((creole-image-class "creole")
@@ -171,51 +216,6 @@ Must be an immediate subdirectory of `skinny-root'."
           (replace-match (esxml-to-xml (skinny/posts-html-list)) nil t)))
        (buffer-string)))
     (elnode-http-return httpcon)))
-
-(defun skinny/list-posts ()
-  "Produce the list of blog posts (file names), sorted by mtime.
-
-Posts are all \"*.creole\" files in `skinny-blog-dir'."
-  (sort
-   (directory-files (concat skinny-root skinny-blog-dir) t ".*\\.creole\\'" t)
-   (lambda (a b)
-     (time-less-p
-      (elt (file-attributes a) 5)
-      (elt (file-attributes b) 5)))))
-
-(defun skinny/posts-html-list ()
-  "Produce an HTML list of the posts.
-Each post's title is listed, and links to the post itself.
-HTML is returned as ESXML, rather than a string."
-  (esxml-listify
-   (mapcar
-    (lambda (post)
-      (let ((metadata (skinny/post-meta-data post)))
-        (esxml-link
-         (save-match-data
-           (string-match (expand-file-name
-                          (format "%s\\(%s.*\\.creole\\)" skinny-root skinny-blog-dir))
-                         post)
-           (file-name-sans-extension (match-string 1 post)))
-         (cdr (assoc 'title metadata)))))
-    (skinny/list-posts))))
-
-(defun skinny/post-meta-data (post)
-  "Return corresponding meta-data file for POST file.
-
-Takes the file name of a \".creole\" blog post, and reads the
-corresponding \".el\" file, which should contain only a single
-alist with the following fields:
-
-title
-author (optional) -- Just the author name, not name then email.
-timestamp -- RFC3339 format
-UUID -- Used for the id of feed entries; see RFC4287."
-  (with-temp-buffer
-    (save-match-data
-     (insert-file-contents
-      (concat (file-name-sans-extension post) ".el")))
-    (read (current-buffer))))
 
 (defun skinny/feed ()
   "Generate an Atom feed from the most recent posts."
