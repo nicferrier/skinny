@@ -96,22 +96,23 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
        (elnode-error "Sending blog post: %s" post)
        (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
        (elnode-http-send-string httpcon
-         (pp-esxml-to-xml
-           `(html ()
-              ,(esxml-head "FIXME: post-title"
-                 '(meta ((charset . "UTF-8")))
-                 ;;(meta 'author FIXME)
-                 (css-link skinny-blog-css-file-name)
-                 (link 'alternate "application/atom+xml"
-                       (concat skinny-root skinny-blog-dir "feed.xml")
-                       '((title . "site feed"))))
-              (body ()
-                ,(with-temp-buffer
-                   (insert-file-contents post)
-                   (with-current-buffer
-                       (creole-html (current-buffer) nil
-                                    :do-font-lock t)
-                     (buffer-string)))))))
+         (let ((metadata (skinny/post-meta-data post)))
+           (pp-esxml-to-xml
+            `(html ()
+               ,(esxml-head (cdr (assoc 'title metadata))
+                  '(meta ((charset . "UTF-8")))
+                  (meta 'author (cdr (assoc 'author metadata)))
+                  (css-link skinny-blog-css-file-name)
+                  (link 'alternate "application/atom+xml"
+                    (concat skinny-root skinny-blog-dir "feed.xml")
+                    '((title . "site feed"))))
+               (body ()
+                 ,(with-temp-buffer
+                    (insert-file-contents post)
+                    (with-current-buffer
+                        (creole-html (current-buffer) nil
+                                     :do-font-lock t)
+                      (buffer-string))))))))
        (elnode-http-return httpcon)))))
 
 (defun skinny-index-page (httpcon)
@@ -144,44 +145,69 @@ Each post's title is listed, and links to the post itself.
 HTML is returned as ESXML, rather than a string."
   (esxml-listify
    (mapcar
-    (lambda (post-file-name)
-      (esxml-link
-       (save-match-data
-         (string-match (expand-file-name
-                        (format "%s\\(%s.*\\.creole\\)" skinny-root skinny-blog-dir))
-                       post-file-name)
-         (file-name-sans-extension (match-string 1 post-file-name)))
-       "FIXME: post-title"))
+    (lambda (post)
+      (let ((metadata (skinny/post-meta-data post)))
+        (esxml-link
+         (save-match-data
+           (string-match (expand-file-name
+                          (format "%s\\(%s.*\\.creole\\)" skinny-root skinny-blog-dir))
+                         post)
+           (file-name-sans-extension (match-string 1 post)))
+         (cdr (assoc 'title metadata)))))
     (skinny/list-posts))))
+
+(defun skinny/post-meta-data (post)
+  "Return corresponding meta-data file for POST file.
+
+Takes the file name of a \".creole\" blog post, and reads the
+corresponding \".el\" file, which should contain only a single
+alist with the following fields:
+
+title
+author -- Just the author name, not name then email.
+timestamp -- RFC3339 format
+UUID -- Used for the id of feed entries; see RFC4287."
+  (with-temp-buffer
+    (insert-file-contents
+     (concat (file-name-sans-extension post) ".el"))
+    (read (current-buffer))))
 
 (defun skinny/feed ()
   "Generate an Atom feed from the most recent posts."
-  (concat "<?xml version=\"1.0\"?>"
-   (pp-esxml-to-xml
-    `(feed ((xmlns . "http://www.w3.org/2005/Atom")
-            (xml:lang . "en"))
-       ;; Feed metadata.
-       (title () ,skinny-blog-name)
-       (link ((href . "FIXME: absolute feed URL")
-              (rel . "self")))
-       (link ((href . "./")))
-       (id () "urn:uuid:FIXME")
-       (updated () "FIXME: timestamp")
-       (author ()
-         (name () "FIXME: author"))
-       ;; Now for the entries.
-       ,@(mapcar
-          (lambda (post)
-            `(entry ()
-               (title () "FIXME: post-title")
-               (link ((href . ,(file-name-sans-extension
-                                (file-name-nondirectory post)))))
-               (id () "urn:uuid:FIXME")
-               (updated () "FIXME: timestamp")
-               (summary ((type . "xhtml"))
-                 (div ((xmlns . "http://www.w3.org/1999/xhtml"))
-                      "FIXME: post summary"))))
-          (skinny/list-posts))))))
+  (let* ((posts (skinny/list-posts))
+         (last-post-metadata (skinny/post-meta-data
+                              (car posts))))
+    (concat "<?xml version=\"1.0\"?>"
+      (pp-esxml-to-xml
+        `(feed ((xmlns . "http://www.w3.org/2005/Atom")
+                (xml:lang . "en"))
+           ;; Feed metadata.
+           (title () ,skinny-blog-name)
+           (link ((href . "FIXME: absolute feed URL")
+                  (rel . "self")))
+           (link ((href . "./")))
+           (id () ,(concat "urn:uuid:"
+                     (cdr (assoc 'id
+                                 last-post-metadata))))
+           (updated () ,(cdr (assoc 'timestamp
+                                    last-post-metadata)))
+           (author ()
+             (name () "FIXME: author"))
+           ;; Now for the entries.
+           ,@(mapcar
+              (lambda (post)
+                (let ((metadata (skinny/post-meta-data post)))
+                  `(entry ()
+                     (title () ,(cdr (assoc 'title metadata)))
+                     (link ((href . ,(file-name-sans-extension
+                                      (file-name-nondirectory post)))))
+                     (id () ,(concat "urn:uuid:"
+                                     (cdr (assoc 'id metadata))))
+                     (updated () ,(cdr (assoc 'timestamp metadata)))
+                     (summary ((type . "xhtml"))
+                       (div ((xmlns . "http://www.w3.org/1999/xhtml"))
+                            "FIXME: post summary")))))
+              posts))))))
 
 (defun skinny-feed (httpcon)
   "Return a blog feed via HTTPCON.
