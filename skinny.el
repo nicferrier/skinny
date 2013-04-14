@@ -49,6 +49,11 @@
   :type '(string)
   :group 'skinny)
 
+(defcustom skinny-blog-author nil
+  "The blog author."
+  :type '(string)
+  :group 'skinny)
+
 (defcustom skinny-lang "en"
   "The language code for the blog.
 
@@ -125,7 +130,10 @@ Must be an immediate subdirectory of `skinny-root'."
                ,(append
                  (esxml-head (cdr (assoc 'title metadata))
                    '(meta ((charset . "UTF-8")))
-                   (meta 'author (cdr (assoc 'author metadata)))
+                   (meta 'author
+                         (if (assoc 'author metadata)
+                             (cdr (assoc 'author metadata))
+                           skinny-blog-author))
                    (link 'alternate "application/atom+xml"
                          (concat skinny-root skinny-blog-dir "feed.xml")
                          '((title . "site feed"))))
@@ -200,7 +208,7 @@ corresponding \".el\" file, which should contain only a single
 alist with the following fields:
 
 title
-author -- Just the author name, not name then email.
+author (optional) -- Just the author name, not name then email.
 timestamp -- RFC3339 format
 UUID -- Used for the id of feed entries; see RFC4287."
   (with-temp-buffer
@@ -228,14 +236,18 @@ UUID -- Used for the id of feed entries; see RFC4287."
                                  last-post-metadata))))
            (updated () ,(cdr (assoc 'timestamp
                                     last-post-metadata)))
-           (author ()
-             (name () "FIXME: author"))
+           ,@(when skinny-blog-author
+               `((author ()
+                   (name () ,skinny-blog-author))))
            ;; Now for the entries.
            ,@(mapcar
               (lambda (post)
                 (let ((metadata (skinny/post-meta-data post)))
                   `(entry ()
                      (title () ,(cdr (assoc 'title metadata)))
+                     ,(if (assoc 'author metadata)
+                          `(author () ,(cdr (assoc 'author metadata)))
+                        skinny-blog-author)
                      (link ((href . ,(file-name-sans-extension
                                       (file-name-nondirectory post)))))
                      (id () ,(concat "urn:uuid:"
