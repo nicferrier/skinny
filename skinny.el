@@ -67,29 +67,33 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
   :group 'skinny-dirs)
 
 (defcustom skinny-blog-dir "blog/"
-  "The directory for blog posts."
+  "The directory for blog posts.
+
+Must be an immediate subdirectory of `skinny-root'."
   :type '(directory)
   :group 'skinny-dirs)
 
 (defcustom skinny-css-dir "css/"
-  "The directory for CSS files."
+  "The directory for CSS files.
+
+Must be an immediate subdirectory of `skinny-root'."
   :type '(directory)
   :group 'skinny-dirs)
 
 (defcustom skinny-image-dir "images/"
-  "The directory for images."
+  "The directory for images.
+
+Must be an immediate subdirectory of `skinny-root'."
   :type '(directory)
   :group 'skinny-dirs)
 
 (defun skinny-post (httpcon)
   "Return a rendered creole blog post via HTTPCON."
-  (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
-        (css (concat skinny-root skinny-css-dir))
-        (creole-image-class "creole")
+  (let ((creole-image-class "creole")
         (targetfile (elnode-http-mapping httpcon 1)))
     (flet ((elnode-http-mapping (httpcon which)
             (concat targetfile ".creole")))
-     (elnode-docroot-for skinny-blog-dir
+     (elnode-docroot-for (concat skinny-root skinny-blog-dir)
        with post
        on httpcon
        do
@@ -102,7 +106,9 @@ Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
                ,(esxml-head (cdr (assoc 'title metadata))
                   '(meta ((charset . "UTF-8")))
                   (meta 'author (cdr (assoc 'author metadata)))
-                  (css-link skinny-blog-css-file-name)
+                  (css-link (concat "../"
+                                    skinny-css-dir
+                                    skinny-blog-css-file-name))
                   (link 'alternate "application/atom+xml"
                     (concat skinny-root skinny-blog-dir "feed.xml")
                     '((title . "site feed"))))
