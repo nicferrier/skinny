@@ -192,8 +192,9 @@ HTML is returned as ESXML, rather than a string."
                    (header ()
                      ,(cdr (assoc 'title metadata))
                      (br ())
-                     (span ((class . "timestamp"))
-                      ,(cdr (assoc 'timestamp metadata))))
+                     ,(let ((timestamp (cdr (assoc 'timestamp metadata))))
+                       `(time ((datetime . ,timestamp))
+                          ,timestamp)))
                    ,(with-temp-buffer
                       (save-match-data
                         (insert-file-contents post))
