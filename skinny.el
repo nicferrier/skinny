@@ -70,6 +70,38 @@ http://www.w3.org/International/articles/language-tags/"
   :type '(repeat file)
   :group 'skinny)
 
+(defconst skinny-blog-top-file-name "top.html"
+  "The name of the blog top file.
+
+This file is inserted at the top of the blog post page, before
+the <article> element.
+
+This file is searched for in `skinny-blog-dir'.")
+
+(defconst skinny-blog-header-file-name "header.html"
+  "The name of the blog header file.
+
+This file is inserted at the end of the blog post page <header>
+element.
+
+This file is searched for in `skinny-blog-dir'.")
+
+(defconst skinny-blog-footer-file-name "footer.html"
+  "The name of the blog footer file.
+
+This file is inserted at the end of the blog post page <footer>
+element.
+
+This file is searched for in `skinny-blog-dir'.")
+
+(defconst skinny-blog-bottom-file-name "bottom.html"
+  "The name of the blog bottom file.
+
+This file is inserted at the end of the blog post page, after the
+<article> element.
+
+This file is searched for in `skinny-blog-dir'.")
+
 (defcustom skinny-blog-article-class nil
   "<article> class attribute.
 
@@ -158,35 +190,44 @@ HTML is returned as ESXML, rather than a string."
 
 (defun skinny-post (httpcon)
   "Return a rendered creole blog post via HTTPCON."
-  (let ((creole-image-class "creole")
+  (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
+        (creole-image-class "creole")
         (targetfile (elnode-http-mapping httpcon 1)))
     (flet ((elnode-http-mapping (httpcon which)
-            (concat targetfile ".creole")))
-     (elnode-docroot-for (concat skinny-root skinny-blog-dir)
-       with post
-       on httpcon
-       do
-       (elnode-error "Sending blog post: %s" post)
-       (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
-       (elnode-http-send-string httpcon
-         (let ((metadata (skinny/post-meta-data post)))
-           (pp-esxml-to-xml
-            `(html ((lang . ,skinny-lang))
-               ,(append
-                 (esxml-head (cdr (assoc 'title metadata))
-                   '(meta ((charset . "UTF-8")))
-                   (meta 'author
-                         (if (assoc 'author metadata)
-                             (cdr (assoc 'author metadata))
-                           skinny-blog-author))
-                   (link 'alternate "application/atom+xml"
-                         (concat skinny-root skinny-blog-dir "feed.xml")
+            (concat targetfile ".creole"))
+           (insert-file-if-exists (file)
+            (when (file-exists-p
+                   (concat skinny-blog-dir file))
+              `(,(with-temp-buffer
+                   (save-match-data
+                     (insert-file-contents
+                      (concat skinny-blog-dir file))
+                     (buffer-string)))))))
+      (elnode-docroot-for skinny-blog-dir
+        with post
+        on httpcon
+        do
+        (elnode-error "Sending blog post: %s" post)
+        (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
+        (elnode-http-send-string httpcon
+          (let ((metadata (skinny/post-meta-data post)))
+            (pp-esxml-to-xml
+             `(html ((lang . ,skinny-lang))
+                ,(append
+                  (esxml-head (cdr (assoc 'title metadata))
+                    '(meta ((charset . "UTF-8")))
+                    (meta 'author
+                          (if (assoc 'author metadata)
+                              (cdr (assoc 'author metadata))
+                            skinny-blog-author))
+                   (link 'alternate "application/atom+xml" "feed.xml"
                          '((title . "site feed"))))
                  (mapcar
                   (lambda (css)
                     (esxml-head-css-link (concat "../" skinny-css-dir css)))
                   skinny-blog-css-file-names))
                (body ()
+                 ,@(insert-file-if-exists skinny-blog-top-file-name)
                  (article ,(when skinny-blog-article-class
                              `((class . ,skinny-blog-article-class)))
                    (header ()
@@ -194,14 +235,36 @@ HTML is returned as ESXML, rather than a string."
                      (br ())
                      ,(let ((timestamp (cdr (assoc 'timestamp metadata))))
                        `(time ((datetime . ,timestamp))
-                          ,timestamp)))
+                          ,timestamp))
+                     ,@(when (file-exists-p
+                              (concat skinny-blog-dir
+                                      skinny-blog-header-file-name))
+                         `((br ())
+                           ,(with-temp-buffer
+                              (save-match-data
+                                (insert-file-contents
+                                 (concat skinny-blog-dir
+                                         skinny-blog-header-file-name))
+                                (buffer-string))))))
                    ,(with-temp-buffer
                       (save-match-data
                         (insert-file-contents post))
                       (with-current-buffer
                           (creole-html (current-buffer) nil
                                        :do-font-lock t)
-                        (buffer-string)))))))))
+                        (buffer-string)))
+                   ,@(when (file-exists-p
+                            (concat skinny-blog-dir
+                                    skinny-blog-footer-file-name))
+                       `((footer ()
+                           ,(with-temp-buffer
+                              (save-match-data
+                                (insert-file-contents
+                                 (concat skinny-blog-dir
+                                         skinny-blog-footer-file-name))
+                                (buffer-string)))))))
+                 ,@(insert-file-if-exists
+                    skinny-blog-bottom-file-name))))))
        (elnode-http-return httpcon)))))
 
 (defun skinny-index-page (httpcon)
