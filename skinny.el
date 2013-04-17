@@ -54,6 +54,14 @@
   :type '(string)
   :group 'skinny)
 
+(defcustom skinny-post-format 'creole
+  "Which markup language the posts are written in.
+
+Skinny can render blog posts written in WikiCreole, or just
+insert literal HTML into the post template.  The file extention
+for blog posts must match the value of this variable.  For
+Creole, set this to 'creole; for HTML, set this to 'html.")
+
 (defcustom skinny-lang "en"
   "The language code for the blog.
 
@@ -148,9 +156,9 @@ Must be an immediate subdirectory of `skinny-root'."
 (defun skinny/post-meta-data (post)
   "Return corresponding meta-data file for POST file.
 
-Takes the file name of a \".creole\" blog post, and reads the
-corresponding \".el\" file, which should contain only a single
-alist with the following fields:
+Takes the file name of a blog post, and reads the corresponding
+\".el\" file, which should contain only a single alist with the
+following fields:
 
 title
 author (optional) -- Just the author name, not name then email.
@@ -165,9 +173,13 @@ UUID -- Used for the id of feed entries; see RFC4287."
 (defun skinny/list-posts ()
   "Produce the list of blog posts (file names), sorted by mtime.
 
-Posts are all \"*.creole\" files in `skinny-blog-dir'."
+Posts are all files in `skinny-blog-dir' with the extention
+`skinny-post-format', excluding the include files."
   (sort
-   (directory-files (concat skinny-root skinny-blog-dir) t ".*\\.creole\\'" t)
+   (directory-files (concat skinny-root skinny-blog-dir)
+                    t
+                    (concat ".*\\." (symbol-name skinny-post-format) "\\'")
+                    t)
    (lambda (a b)
      (time-less-p
       (elt (file-attributes a) 5)
@@ -185,19 +197,23 @@ HTML is returned as ESXML, rather than a string."
         (esxml-link
          (save-match-data
            (string-match (expand-file-name
-                          (format "%s\\(%s.*\\.creole\\)" skinny-root skinny-blog-dir))
+                          (format "%s\\(%s.*\\.%s\\)"
+                                  skinny-root skinny-blog-dir
+                                  (symbol-name skinny-post-format)))
                          post)
            (file-name-sans-extension (match-string 1 post)))
          (cdr (assoc 'title metadata)))))
     (skinny/list-posts))))
 
 (defun skinny-post (httpcon)
-  "Return a rendered creole blog post via HTTPCON."
+  "Return a blog post via HTTPCON.
+
+If using creole, render it first."
   (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
         (creole-image-class "creole")
         (targetfile (elnode-http-mapping httpcon 1)))
     (flet ((elnode-http-mapping (httpcon which)
-            (concat targetfile ".creole"))
+            (concat targetfile "." (symbol-name skinny-post-format)))
            (insert-file-if-exists (file)
             (when (file-exists-p
                    (concat skinny-blog-dir file))
@@ -253,9 +269,11 @@ HTML is returned as ESXML, rather than a string."
                    ,(with-temp-buffer
                       (save-match-data
                         (insert-file-contents post))
-                      (with-current-buffer
-                          (creole-html (current-buffer) nil
-                                       :do-font-lock t)
+                      (if (eq 'creole skinny-post-format)
+                          (with-current-buffer
+                              (creole-html (current-buffer) nil
+                                           :do-font-lock t)
+                            (buffer-string))
                         (buffer-string)))
                    ,@(when (file-exists-p
                             (concat skinny-blog-dir
