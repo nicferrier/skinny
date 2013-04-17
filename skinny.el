@@ -223,11 +223,12 @@ HTML is returned as ESXML, rather than a string."
                           (if (assoc 'author metadata)
                               (cdr (assoc 'author metadata))
                             skinny-blog-author))
+                    (base "../")
                    (link 'alternate "application/atom+xml" "feed.xml"
                          '((title . "site feed"))))
                  (mapcar
                   (lambda (css)
-                    (esxml-head-css-link (concat "../" skinny-css-dir css)))
+                    (esxml-head-css-link (concat skinny-css-dir css)))
                   skinny-blog-css-file-names))
                (body ()
                  ,@(insert-file-if-exists skinny-blog-top-file-name)
