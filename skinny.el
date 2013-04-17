@@ -112,11 +112,13 @@ If set, use as the value of the class attribute for the blog post
 
 (defgroup skinny-dirs nil
   "Various directories for the Skinny blog.
+
 All paths are relative to `skinny-root'."
   :group 'skinny)
 
 (defcustom skinny-root skinny-dir
   "The root directory of the Skinny site.
+
 By default, this is the directory from which Skinny was loaded.
 Blog posts are in a subdirectory, specified by `skinny-blog-dir'."
   :type '(directory)
@@ -173,6 +175,7 @@ Posts are all \"*.creole\" files in `skinny-blog-dir'."
 
 (defun skinny/posts-html-list ()
   "Produce an HTML list of the posts.
+
 Each post's title is listed, and links to the post itself.
 HTML is returned as ESXML, rather than a string."
   (esxml-listify
@@ -324,12 +327,13 @@ HTML is returned as ESXML, rather than a string."
 
 (defun skinny-feed (httpcon)
   "Return a blog feed via HTTPCON.
+
 Calls `skinny/feed' to generate the feed."
   (elnode-http-start httpcon 200 '("Content-type" . "application/xml"))
   (elnode-http-return httpcon (skinny/feed)))
 
 (defun skinny-router (httpcon)
-  "Skinny the blog engine's url router."
+  "Skinny the blog engine's URL router."
   (let ((webserver
          (elnode-webserver-handler-maker
           skinny-root)))
