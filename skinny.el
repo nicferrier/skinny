@@ -28,7 +28,7 @@
 ;;; Code:
 
 (elnode-app skinny-dir
-  creole esxml)
+  creole esxml esxml-html)
 
 (defgroup skinny nil
   "A blog engine written with Elnode. Good for hipsters."
