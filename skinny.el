@@ -78,13 +78,23 @@ http://www.w3.org/International/articles/language-tags/"
   :type '(repeat file)
   :group 'skinny)
 
+(defconst skinny-blog-includes-dir "includes/"
+  "The directory for the blog include files.
+
+The includes files are the top, header, footer, and
+bottom (`skinny-blog-top-file-name',
+`skinny-blog-header-file-name', `skinny-blog-footer-file-name',
+and `skinny-blog-bottom-file-name').
+
+Must be an immediate subdirectory of `skinny-root'.")
+
 (defconst skinny-blog-top-file-name "top.html"
   "The name of the blog top file.
 
 This file is inserted at the top of the blog post page, before
 the <article> element.
 
-This file is searched for in `skinny-blog-dir'.")
+This file is searched for in `skinny-blog-includes-dir'.")
 
 (defconst skinny-blog-header-file-name "header.html"
   "The name of the blog header file.
@@ -92,7 +102,7 @@ This file is searched for in `skinny-blog-dir'.")
 This file is inserted at the end of the blog post page <header>
 element.
 
-This file is searched for in `skinny-blog-dir'.")
+This file is searched for in `skinny-blog-includes-dir'.")
 
 (defconst skinny-blog-footer-file-name "footer.html"
   "The name of the blog footer file.
@@ -100,7 +110,7 @@ This file is searched for in `skinny-blog-dir'.")
 This file is inserted at the end of the blog post page <footer>
 element.
 
-This file is searched for in `skinny-blog-dir'.")
+This file is searched for in `skinny-blog-includes-dir'.")
 
 (defconst skinny-blog-bottom-file-name "bottom.html"
   "The name of the blog bottom file.
@@ -108,7 +118,7 @@ This file is searched for in `skinny-blog-dir'.")
 This file is inserted at the end of the blog post page, after the
 <article> element.
 
-This file is searched for in `skinny-blog-dir'.")
+This file is searched for in `skinny-blog-includes-dir'.")
 
 (defcustom skinny-blog-article-class nil
   "<article> class attribute.
@@ -220,11 +230,13 @@ If using creole, render it first."
             (concat targetfile "." (symbol-name skinny-post-format)))
            (insert-file-if-exists (file)
             (when (file-exists-p
-                   (concat skinny-blog-dir file))
+                   (concat skinny-blog-dir skinny-blog-includes-dir
+                           file))
               `(,(with-temp-buffer
                    (save-match-data
                      (insert-file-contents
-                      (concat skinny-blog-dir file))
+                      (concat skinny-blog-dir skinny-blog-includes-dir
+                              file))
                      (buffer-string)))))))
       (elnode-docroot-for skinny-blog-dir
         with post
@@ -261,13 +273,13 @@ If using creole, render it first."
                        `(time ((datetime . ,timestamp))
                           ,timestamp))
                      ,@(when (file-exists-p
-                              (concat skinny-blog-dir
+                              (concat skinny-blog-dir skinny-blog-includes-dir
                                       skinny-blog-header-file-name))
                          `((br ())
                            ,(with-temp-buffer
                               (save-match-data
                                 (insert-file-contents
-                                 (concat skinny-blog-dir
+                                 (concat skinny-blog-dir skinny-blog-includes-dir
                                          skinny-blog-header-file-name))
                                 (buffer-string))))))
                    ,(with-temp-buffer
@@ -280,17 +292,16 @@ If using creole, render it first."
                             (buffer-string))
                         (buffer-string)))
                    ,@(when (file-exists-p
-                            (concat skinny-blog-dir
+                            (concat skinny-blog-dir skinny-blog-includes-dir
                                     skinny-blog-footer-file-name))
                        `((footer ()
                            ,(with-temp-buffer
                               (save-match-data
                                 (insert-file-contents
-                                 (concat skinny-blog-dir
+                                 (concat skinny-blog-dir skinny-blog-includes-dir
                                          skinny-blog-footer-file-name))
                                 (buffer-string)))))))
-                 ,@(insert-file-if-exists
-                    skinny-blog-bottom-file-name))))))
+                 ,@(insert-file-if-exists skinny-blog-bottom-file-name))))))
        (elnode-http-return httpcon)))))
 
 (defun skinny-index-page (httpcon)
