@@ -14,11 +14,13 @@ site-root/
   index.html
   static-pages.html
   blog/
-    top.html
-    header.html
-    footer.html
-    bottom.html
-    example.creole
+    includes/
+      top.html
+      header.html
+      footer.html
+      bottom.html
+    post.creole (or post.html)
+    post.el <-- post metadata
   css/
     blog.css
     other.css
@@ -35,6 +37,10 @@ element, after the post title and timestamp, and {{{footer.html}}} is
 used as the content of the post {{{<footer>}}} element.  {{{top.html}}}
 and {{{bottom.html}}} are inserted before and after the
 {{{<article>}}} element.
+
+Each post //must// have a corresponding {{{.el}}}, metadata file,
+which must contain only a single alist.  See the docstring for
+{{{skinny/post-meta-data}}} for what the entries should be.
 
 == Configuring Skinny ==
 
