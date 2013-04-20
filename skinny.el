@@ -161,7 +161,11 @@ Takes the file name of a blog post, and reads the corresponding
 following fields:
 
 title
-author (optional) -- Just the author name, not name then email.
+summary -- Used for the Atom <entry> <summary> element, and the
+           \"title\" attribute for the HTML list items.
+author -- Just the author name, not name then email.  If this is
+          absent, then the value of `skinny-blog-author' is used
+          instead.
 timestamp -- RFC3339 format
 UUID -- Used for the id of feed entries; see RFC4287."
   (with-temp-buffer
@@ -341,7 +345,7 @@ If using creole, render it first."
                      (updated () ,(cdr (assoc 'timestamp metadata)))
                      (summary ((type . "xhtml"))
                        (div ((xmlns . "http://www.w3.org/1999/xhtml"))
-                            "FIXME: post summary")))))
+                            ,(cdr (assoc 'summary metadata)))))))
               posts))))))
 
 (defun skinny-feed (httpcon)
