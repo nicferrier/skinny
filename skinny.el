@@ -323,7 +323,7 @@ If using creole, render it first."
   (let* ((posts (skinny/list-posts))
          (last-post-metadata (skinny/post-meta-data
                               (car posts))))
-    (concat "<?xml version=\"1.0\"?>"
+    (concat "<?xml version=\"1.0\"?>\n"
       (pp-esxml-to-xml
         `(feed ((xmlns . "http://www.w3.org/2005/Atom")
                 (xml:lang . ,skinny-lang))
@@ -359,7 +359,7 @@ If using creole, render it first."
                      (updated () ,(cdr (assoc 'timestamp metadata)))
                      (summary ((type . "xhtml"))
                        (div ((xmlns . "http://www.w3.org/1999/xhtml"))
-                            ,(cdr (assoc 'summary metadata)))))))
+                         ,(cdr (assoc 'summary metadata)))))))
               posts))))))
 
 (defun skinny-feed (httpcon)
