@@ -177,7 +177,7 @@ author -- Just the author name, not name then email.  If this is
           absent, then the value of `skinny-blog-author' is used
           instead.
 timestamp -- RFC3339 format
-UUID -- Used for the id of feed entries; see RFC4287."
+uuid -- Used for the id of feed entries; see RFC4287."
   (with-temp-buffer
     (save-match-data
      (insert-file-contents
@@ -333,7 +333,7 @@ If using creole, render it first."
                   (rel . "self")))
            (link ((href . "./")))
            (id () ,(concat "urn:uuid:"
-                     (cdr (assoc 'id
+                     (cdr (assoc 'uuid
                                  last-post-metadata))))
            (updated () ,(cdr (assoc 'timestamp
                                     last-post-metadata)))
@@ -353,7 +353,7 @@ If using creole, render it first."
                      (link ((href . ,(file-name-sans-extension
                                       (file-name-nondirectory post)))))
                      (id () ,(concat "urn:uuid:"
-                                     (cdr (assoc 'id metadata))))
+                                     (cdr (assoc 'uuid metadata))))
                      (updated () ,(cdr (assoc 'timestamp metadata)))
                      (summary ((type . "xhtml"))
                        (div ((xmlns . "http://www.w3.org/1999/xhtml"))
