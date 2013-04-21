@@ -348,7 +348,8 @@ If using creole, render it first."
                      (title () ,(cdr (assoc 'title metadata)))
                      ,(if (assoc 'author metadata)
                           `(author () ,(cdr (assoc 'author metadata)))
-                        skinny-blog-author)
+                        `(author ()
+                           (name () ,skinny-blog-author)))
                      (link ((href . ,(file-name-sans-extension
                                       (file-name-nondirectory post)))))
                      (id () ,(concat "urn:uuid:"
