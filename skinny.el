@@ -185,7 +185,7 @@ uuid -- Used for the id of feed entries; see RFC4287."
     (read (current-buffer))))
 
 (defun skinny/list-posts ()
-  "Produce the list of blog posts (file names), sorted by mtime.
+  "Produce the list of blog posts (file names), sorted by timestamp.
 
 Posts are all files in `skinny-blog-dir' with the extention
 `skinny-post-format', excluding the include files."
@@ -195,9 +195,12 @@ Posts are all files in `skinny-blog-dir' with the extention
                     (concat ".*\\." (symbol-name skinny-post-format) "\\'")
                     t)
    (lambda (a b)
-     (time-less-p
-      (elt (file-attributes a) 5)
-      (elt (file-attributes b) 5)))))
+     (flet ((post-date (post)
+            (date-to-time
+             (cdr (assoc 'timestamp (skinny/post-meta-data post))))))
+       (time-less-p
+        (post-date a)
+        (post-date b))))))
 
 (defun skinny/posts-html-list ()
   "Produce an HTML list of the posts.
