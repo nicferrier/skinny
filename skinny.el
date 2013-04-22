@@ -44,6 +44,18 @@
   :type '(string)
   :group 'skinny)
 
+(defcustom skinny-base-url (format "http://%s:%s/"
+                                   skinny-host skinny-port)
+  "The base URL of the Skinny instance.
+
+This should be set to the absolute URL of the Skinny instance as
+it is seen to the outside world.
+
+This is only used in the Atom feed <link rel=\"self\" href=\"...\"/>
+element."
+  :type '(string)
+  :group 'skinny)
+
 (defcustom skinny-blog-name "skinny"
   "The name of the blog."
   :type '(string)
@@ -336,7 +348,7 @@ If using creole, render it first."
                 (xml:lang . ,skinny-lang))
            ;; Feed metadata.
            (title () ,skinny-blog-name)
-           (link ((href . "FIXME: absolute feed URL")
+           (link ((href . ,(concat skinny-base-url skinny-blog-dir))
                   (rel . "self")))
            (link ((href . "./")))
            (id () ,(concat "urn:uuid:"
