@@ -274,7 +274,8 @@ If using creole, render it first."
                      (br ())
                      ,(let ((timestamp (cdr (assoc 'timestamp metadata))))
                        `(time ((datetime . ,timestamp))
-                          ,timestamp))
+                          ,(format-time-string "%d %B %Y, %R %Z"
+                                               (date-to-time timestamp))))
                      ,@(when (file-exists-p
                               (concat skinny-blog-dir skinny-blog-includes-dir
                                       skinny-blog-header-file-name))
@@ -317,7 +318,10 @@ If using creole, render it first."
        (save-match-data
          (insert-file-contents page)
         (while (search-forward "<!--{{{posts}}}-->" nil t)
-          (replace-match (esxml-to-xml (skinny/posts-html-list)) nil t)))
+          (replace-match (esxml-to-xml
+                          (save-match-data
+                            (skinny/posts-html-list)))
+                         nil t)))
        (buffer-string)))
     (elnode-http-return httpcon)))
 
