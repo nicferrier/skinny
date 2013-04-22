@@ -4,7 +4,7 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: hypermedia
-;; Version: 0.0.4
+;; Version: 0.0.5
 ;; Package-Requires: ((elnode "0.9.9.6.1")(creole "0.8.17"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -111,7 +111,9 @@ Published files are those not in the `drafts' folder."
 
 Finds the latest published post and makes that the page."
   (let* ((top (car (last (skinny/list-published))))
-         (root-re (concat (expand-file-name skinny-root) "/blog/\\(.*\\)"))
+         (root-re (concat
+                   (file-name-as-directory (expand-file-name skinny-root))
+                   "blog/\\(.*\\)"))
          (top-path (progn
                      (string-match root-re top)
                      (concat "/" (match-string 1 top))))
