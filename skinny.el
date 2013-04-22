@@ -56,6 +56,14 @@ element."
   :type '(string)
   :group 'skinny)
 
+(defcustom skinny-feed-uuid "deadbeef-dead-beef-dead-beefdeadbeef"
+  "UUID to use for the Atom feed.
+
+This string is used for the feed's <id>, prefixed with
+\"urn:uuid:\"; see RFC4287."
+  :type '(string)
+  :group 'skinny)
+
 (defcustom skinny-blog-name "skinny"
   "The name of the blog."
   :type '(string)
@@ -351,9 +359,7 @@ If using creole, render it first."
            (link ((href . ,(concat skinny-base-url skinny-blog-dir))
                   (rel . "self")))
            (link ((href . "./")))
-           (id () ,(concat "urn:uuid:"
-                     (cdr (assoc 'uuid
-                                 last-post-metadata))))
+           (id () ,(concat "urn:uuid:" skinny-feed-uuid))
            (updated () ,(cdr (assoc 'timestamp
                                     last-post-metadata)))
            ,@(when skinny-blog-author
