@@ -191,13 +191,15 @@ Takes the file name of a blog post, and reads the corresponding
 following fields:
 
 title
-summary -- Used for the Atom <entry> <summary> element, and the
-           \"title\" attribute for the HTML list items.
+summary -- Used for the Atom <entry> <summary> element.
 author -- Just the author name, not name then email.  If this is
           absent, then the value of `skinny-blog-author' is used
           instead.
-timestamp -- RFC3339 format
-uuid -- Used for the id of feed entries; see RFC4287."
+timestamp -- Timestamp of last update in RFC3339 format.
+uuid -- Used for the id of feed entries, prefixed with
+        \"urn:uuid\".
+
+See RFC4287 for details on what values are appropriate."
   (with-temp-buffer
     (save-match-data
      (insert-file-contents
