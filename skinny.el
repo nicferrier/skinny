@@ -340,7 +340,7 @@ If using creole, render it first."
        (save-match-data
          (insert-file-contents page)
         (while (search-forward "<!--{{{posts}}}-->" nil t)
-          (replace-match (esxml-to-xml
+          (replace-match (pp-esxml-to-xml
                           (save-match-data
                             (skinny/posts-html-list)))
                          nil t)))
