@@ -335,7 +335,7 @@ If using creole, render it first."
   (let ((page (concat skinny-root "index.html")))
     (elnode-error "Sending index page.")
     (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
-    (elnode-http-send-string httpcon
+    (elnode-http-return httpcon
      (with-temp-buffer
        (save-match-data
          (insert-file-contents page)
@@ -344,8 +344,7 @@ If using creole, render it first."
                           (save-match-data
                             (skinny/posts-html-list)))
                          nil t)))
-       (buffer-string)))
-    (elnode-http-return httpcon)))
+       (buffer-string)))))
 
 (defun skinny/feed ()
   "Generate an Atom feed from the most recent posts."
