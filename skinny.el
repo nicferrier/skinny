@@ -269,7 +269,8 @@ If using creole, render it first."
         do
         (elnode-error "Sending blog post: %s" post)
         (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
-        (elnode-http-send-string httpcon
+        (elnode-http-send-string httpcon "<!DOCTYPE HTML>")
+        (elnode-http-return httpcon
           (let ((metadata (skinny/post-meta-data post)))
             (pp-esxml-to-xml
              `(html ((lang . ,skinny-lang))
@@ -327,8 +328,7 @@ If using creole, render it first."
                                  (concat skinny-blog-dir skinny-blog-includes-dir
                                          skinny-blog-footer-file-name))
                                 (buffer-string)))))))
-                 ,@(insert-file-if-exists skinny-blog-bottom-file-name))))))
-       (elnode-http-return httpcon)))))
+                 ,@(insert-file-if-exists skinny-blog-bottom-file-name))))))))))
 
 (defun skinny-index-page (httpcon)
   "Return the index page via HTTPCON."
