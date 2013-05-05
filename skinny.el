@@ -221,8 +221,8 @@ Posts are all files in `skinny-blog-dir' with the extention
             (date-to-time
              (cdr (assoc 'timestamp (skinny/post-meta-data post))))))
        (time-less-p
-        (post-date a)
-        (post-date b))))))
+        (post-date b)
+        (post-date a))))))
 
 (defun skinny/posts-html-list ()
   "Produce an HTML list of the posts.
