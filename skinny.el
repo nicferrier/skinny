@@ -187,7 +187,7 @@ Must be an immediate subdirectory of `skinny-root'."
   "Return corresponding meta-data file for POST file.
 
 Takes the file name of a blog post, and reads the corresponding
-\".el\" file, which should contain only a single alist with the
+\".sexp\" file, which should contain only a single alist with the
 following fields:
 
 title
@@ -203,7 +203,7 @@ See RFC4287 for details on what values are appropriate."
   (with-temp-buffer
     (save-match-data
      (insert-file-contents
-      (concat (file-name-sans-extension post) ".el")))
+      (concat (file-name-sans-extension post) ".sexp")))
     (read (current-buffer))))
 
 (defun skinny/list-posts ()
