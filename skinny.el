@@ -217,7 +217,7 @@ Posts are all files in `skinny-blog-dir' with the extention
                     (concat ".*\\." (symbol-name skinny-post-format) "\\'")
                     t)
    (lambda (a b)
-     (flet ((post-date (post)
+     (cl-flet ((post-date (post)
             (date-to-time
              (cdr (assoc 'timestamp (skinny/post-meta-data post))))))
        (time-less-p
@@ -251,7 +251,7 @@ If using creole, render it first."
   (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
         (creole-image-class "creole")
         (targetfile (elnode-http-mapping httpcon 1)))
-    (flet ((elnode-http-mapping (httpcon which)
+    (cl-flet ((elnode-http-mapping (httpcon which)
             (concat targetfile "." (symbol-name skinny-post-format)))
            (insert-file-if-exists (file)
             (when (file-exists-p
