@@ -252,7 +252,7 @@ If using creole, render it first."
   (let ((skinny-blog-dir (concat skinny-root skinny-blog-dir))
         (creole-image-class "creole")
         (targetfile (elnode-http-mapping httpcon 1)))
-    (cl-flet ((elnode-http-mapping (httpcon which)
+    (flet ((elnode-http-mapping (httpcon which)
             (concat targetfile "." (symbol-name skinny-post-format)))
            (insert-file-if-exists (file)
             (when (file-exists-p
