@@ -64,9 +64,9 @@ corresponding .creole files are created, in that order, in
      :filename "post.sexp"
      :directory "/path/to/blog/"
      :content metadata-string)
-    (should (string= metadata
+    (should (equal metadata
                      (skinny/post-meta-data "post.html")))
-    (should (string= metadata
+    (should (equal metadata
                      (skinny/post-meta-data "post.creole"))))))
 
 (ert-deftest skinny/list-posts ()

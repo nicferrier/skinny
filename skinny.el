@@ -203,8 +203,9 @@ See RFC4287 for details on what values are appropriate."
   (with-temp-buffer
     (save-match-data
      (insert-file-contents
-      (concat (file-name-sans-extension post) ".sexp")))
-    (read (current-buffer))))
+      (concat (file-name-sans-extension post) ".sexp"))
+     (goto-char (point-min))
+     (read (current-buffer)))))
 
 (defun skinny/list-posts ()
   "Produce the list of blog posts (file names), sorted by timestamp.
