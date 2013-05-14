@@ -71,7 +71,13 @@ corresponding .creole files are created, in that order, in
 
 (ert-deftest skinny/list-posts ()
   (skinny-test/with-test-site
-   (should (equal post-basenames
-                  (skinny/list-posts)))))
+   (should (equal
+            (reverse
+             (mapcar
+              (lambda (post)
+                (concat skinny-root skinny-blog-dir
+                        post "." (symbol-name skinny-post-format)))
+              post-basenames))
+            (skinny/list-posts)))))
 
 ;;; skinny-test.el ends here
