@@ -80,4 +80,16 @@ corresponding .creole files are created, in that order, in
               post-basenames))
             (skinny/list-posts)))))
 
+(ert-deftest skinny/posts-html-list ()
+  (skinny-test/with-test-site
+   (should (equal
+            `(ul ()
+              ,@(mapcar
+                 (lambda (post)
+                   `(li ()
+                      (a ((href . ,(concat skinny-blog-dir post)))
+                         ,post)))
+                 (reverse post-basenames)))
+            (skinny/posts-html-list)))))
+
 ;;; skinny-test.el ends here
