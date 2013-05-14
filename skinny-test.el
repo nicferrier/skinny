@@ -35,26 +35,26 @@
 bound to a list of strings foo, bar, baz, and goo, from which
 corresponding .creole files are created, in that order, in
 `skinny-blog-dir'."
-  (let* ((skinny-root "/tmp/skinny-test-root/")
-         (post-basenames '("foo" "bar" "baz" "goo")))
-    (unwind-protect
-        (progn
-          (make-directory (concat skinny-root skinny-blog-dir) t)
-          (dolist (post-name post-basenames)
-            (with-temp-file (concat skinny-root skinny-blog-dir post-name ".creole")
-              (insert post-name)))
-          (cl-map nil
-            (lambda (post-name timestamp)
-              (with-temp-file (concat skinny-root skinny-blog-dir post-name ".sexp")
-                (prin1 `((title . ,post-name)
-                         (summary . ,(concat "Dummy post " post-name))
-                         (timestamp . ,timestamp))
-                       (current-buffer))))
-            post-basenames
-            '("2013-05-13T09:38:10Z" "2013-05-13T09:38:18Z" "2013-05-13T09:38:21Z" "2013-05-13T09:38:27Z"))
-          body)
-      ;; Path hard-coded here in case caller changes `skinny-root' in BODY.
-      (delete-directory "/tmp/skinny-test-root/" t))))
+  `(let* ((skinny-root "/tmp/skinny-test-root/")
+          (post-basenames '("foo" "bar" "baz" "goo")))
+     (unwind-protect
+         (progn
+           (make-directory (concat skinny-root skinny-blog-dir) t)
+           (dolist (post-name post-basenames)
+             (with-temp-file (concat skinny-root skinny-blog-dir post-name ".creole")
+               (insert post-name)))
+           (cl-map nil
+                   (lambda (post-name timestamp)
+                     (with-temp-file (concat skinny-root skinny-blog-dir post-name ".sexp")
+                       (prin1 `((title . ,post-name)
+                                (summary . ,(concat "Dummy post " post-name))
+                                (timestamp . ,timestamp))
+                              (current-buffer))))
+                   post-basenames
+                   '("2013-05-13T09:38:10Z" "2013-05-13T09:38:18Z" "2013-05-13T09:38:21Z" "2013-05-13T09:38:27Z"))
+           ,@body)
+       ;; Path hard-coded here in case caller changes `skinny-root' in BODY.
+       (delete-directory "/tmp/skinny-test-root/" t))))
 
 (ert-deftest skinny/post-meta-data ()
   (let* ((metadata-string "((title . \"Lorem ipsum\")(summary . \"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\")(timestamp . \"2013-05-12T02:54:39Z\")(uuid . \"deadbeef-dead-beef-dead-beefdeadbeef\"))")
