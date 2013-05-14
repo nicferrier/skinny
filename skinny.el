@@ -187,7 +187,7 @@ Must be an immediate subdirectory of `skinny-root'."
   "Return corresponding meta-data file for POST file.
 
 Takes the file name of a blog post, and reads the corresponding
-\".el\" file, which should contain only a single alist with the
+\".sexp\" file, which should contain only a single alist with the
 following fields:
 
 title
@@ -203,8 +203,9 @@ See RFC4287 for details on what values are appropriate."
   (with-temp-buffer
     (save-match-data
      (insert-file-contents
-      (concat (file-name-sans-extension post) ".el")))
-    (read (current-buffer))))
+      (concat (file-name-sans-extension post) ".sexp"))
+     (goto-char (point-min))
+     (read (current-buffer)))))
 
 (defun skinny/list-posts ()
   "Produce the list of blog posts (file names), sorted by timestamp.
@@ -217,7 +218,7 @@ Posts are all files in `skinny-blog-dir' with the extention
                     (concat ".*\\." (symbol-name skinny-post-format) "\\'")
                     t)
    (lambda (a b)
-     (flet ((post-date (post)
+     (cl-flet ((post-date (post)
             (date-to-time
              (cdr (assoc 'timestamp (skinny/post-meta-data post))))))
        (time-less-p
