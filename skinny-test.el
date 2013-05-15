@@ -1,10 +1,9 @@
 ;;; skinny-test.el --- Skinny tests -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012  Nic Ferrier
+;; Copyright (C) 2013  Nic Ferrier, Aidan Gauland
 
-;; Author: Aidan Gauland <aidalgol@amuri.net>
-;; Keywords: hypermedia
-;; Version: 0.0.4
+;; Author: Nic Ferrier <nferrier@ferrier.me.uk> and Aidan Gauland <aidalgol@amuri.net>
+;; Keywords: hypermedia, lisp
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

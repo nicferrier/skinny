@@ -1,0 +1,7 @@
+(skinny
+ :version "0.1"
+ :doc "Elnode blogging engine"
+ :requires ((esxml "0.2.3")
+            (elnode "0.9.9.6.7"))
+ :files
+ ("skinny.el"))
