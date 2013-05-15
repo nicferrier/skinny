@@ -20,7 +20,7 @@ site-root/
       footer.html
       bottom.html
     post.creole (or post.html)
-    post.el <-- post metadata
+    post.sexp <-- post metadata
   css/
     blog.css
     other.css
@@ -38,7 +38,7 @@ used as the content of the post {{{<footer>}}} element.  {{{top.html}}}
 and {{{bottom.html}}} are inserted before and after the
 {{{<article>}}} element.
 
-Each post //must// have a corresponding {{{.el}}}, metadata file,
+Each post //must// have a corresponding {{{.sexp}}}, metadata file,
 which must contain only a single alist.  See the docstring for
 {{{skinny/post-meta-data}}} for what the entries should be.
 
