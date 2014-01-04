@@ -86,3 +86,56 @@ or do it from the command line:
 {{{
 emacsclient -e '(skinny-start)' -s /path/to/some/daemon-emacs
 }}}
+
+== Skinny's Paste handling ==
+
+I've recently added a paste handler to Skinny.  I did this because
+GitHub's gist service has stopped working for me and pasting is such a
+simple thing to do.
+
+I use a simple function to upload files to the directory where this
+elnode handler serves files from. I just use Emacs' TRAMP to do that.
+
+Here's the upload function:
+
+{{{
+;;; paste.el --- wrap a piece of text with creole stuff and save it somewhere
+
+(defvar skinny-paste-dir "/po3:skinny-pastes/pastes"
+  "The directory where we save paste files.
+
+A full tramp name is possible so you can save to a remote.")
+
+(defvar skinny-paste-http "http://nic.ferrier.me.uk/pastes"
+  "The HTTP URL where the pastes are accessible.")
+
+(defvar skinny-paste-history nil
+  "The history of `skinny-paste-region' descriptions.")
+
+(defun skinny-paste-region (start end description)
+  "Make a new paste out of the region between START and END.
+
+DESCRIPTION describes the paste."
+  (interactive
+   (list (region-beginning)
+         (region-end)
+         (read-from-minibuffer
+          "paste description: "
+          nil nil nil skinny-paste-history)))
+  (let ((region (buffer-substring-no-properties start end))
+        (buffer-mode (replace-regexp-in-string
+                      "-mode$" "" (symbol-name major-mode))))
+    (let* ((basename (base64-encode-string (sha1 description)))
+           (filename
+            (format "%s/%s.creole" skinny-paste-dir basename)))
+      (with-temp-file filename
+          (insert
+           (format
+            "== %s ==\n\n{{{\n##! %s\n%s}}}\n//%s//\n"
+            description buffer-mode region (current-time-string))))
+      (when (called-interactively-p 'any)
+        (kill-new (concat skinny-paste-http "/" basename)))
+      filename)))
+
+;;; paste.el ends here
+}}}
