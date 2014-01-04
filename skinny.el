@@ -4,7 +4,7 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: hypermedia
-;; Version: 0.0.5
+;; Version: 0.0.6
 ;; Package-Requires: ((elnode "0.9.9.6.1")(creole "0.8.17"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -27,14 +27,19 @@
 
 ;;; Code:
 
-(elnode-app skinny-dir creole)
+(elnode-app skinny-dir noflet creole)
 
 (defgroup skinny nil
   "A blog engine written with Elnode. Good for hipsters."
   :group 'applications)
 
 (defcustom skinny-root ""
-  "The directory used tostore the skinny docroot."
+  "The directory used to store the skinny docroot."
+  :group 'skinny
+  :type 'directory)
+
+(defcustom skinny-paste-root ""
+  "The directory used to store the skinny pastes."
   :group 'skinny
   :type 'directory)
 
@@ -67,11 +72,34 @@
              :body-header body-header
              :body-footer body-footer)))))
 
+(defun skinny-paste (httpcon)
+  "Serve a paste."
+  (let ((css (concat skinny-root "/stuff/css/site.css"))
+        (body-header (concat skinny-root "/template/headerhtml"))
+        (body-footer (concat skinny-root "/template/footerhtml"))
+        (skinny-pasteroot (concat skinny-paste-root "/pastes"))
+        (targetfile (elnode-http-mapping httpcon 1))
+        (creole-image-class "creole"))
+    (noflet ((elnode-http-mapping (httpcon which)
+               (concat targetfile ".creole")))
+      (elnode-docroot-for skinny-pasteroot
+          with page
+          on httpcon
+          do
+          (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
+          (with-stdout-to-elnode httpcon
+              (creole-wiki page
+               :destination t
+               :docroot skinny-root
+               :css (list css)
+               :body-header "<div id=\"header\">"
+               :body-footer "</div>"))))))
+
 (defun skinny-redirector (httpcon)
   "Redirect non creole pages to creole."
   (let ((targetfile (elnode-http-mapping httpcon 1)))
-    (flet ((elnode-http-mapping (httpcon which)
-             (concat targetfile ".creole")))
+    (noflet ((elnode-http-mapping (httpcon which)
+               (concat targetfile ".creole")))
       (skinny-page httpcon))))
 
 (defun skinny/directory-files (directory &rest excludes)
@@ -118,14 +146,23 @@ Finds the latest published post and makes that the page."
                      (string-match root-re top)
                      (concat "/" (match-string 1 top))))
          (targetfile (elnode-http-mapping httpcon 1)))
-    (flet ((elnode-http-mapping (httpcon which)
-             top-path))
+    (noflet ((elnode-http-mapping (httpcon which)
+               top-path))
       (skinny-page httpcon))))
 
 (defun skinny-feed (httpcon)
   "For now a dummy feed."
   (elnode-http-start httpcon 200 '("Content-type" . "application/xml"))
   (elnode-http-return httpcon "<?xml version='1.0'?>"))
+
+(defun skinny-index (httpcon)
+  (let ((css (concat skinny-root "/stuff/css/site.css")))
+    (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
+    (with-stdout-to-elnode httpcon
+        (creole-wiki (concat skinny-root "/indexes/index.creole")
+         :destination t
+         :docroot skinny-root
+         :css (list css)))))
 
 (defun skinny-router (httpcon)
   "Skinny the blog engine's url router."
@@ -143,8 +180,10 @@ Finds the latest published post and makes that the page."
        ("^[^/]+//blog/\\(.*\\.creole\\)" . skinny-page)
        ("^[^/]+//blog/\\(.*\\)" . skinny-redirector)
        ("^[^/]+//stuff/\\(.*\\)" . ,webserver)
+       ("^[^/]+//index$" . skinny-index)
        ;; Deal with the favicon
        ("^[^/]+//favicon.ico" . ,favicon-sender)
+       ("^[^/]+//pastes/\\(.*\\)$" . skinny-paste)
        ("^[^/]+//$" . skinny-homepage)))))
 
 ;;;###autoload
