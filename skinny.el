@@ -121,7 +121,7 @@ Published files are those not in the `drafts' folder."
   (let* ((excludes (list ".*/\\.*#.*"
                          ".*~"
                          ".*/drafts\\(/.*\\)*"
-                         ".*/\\."))
+                         ".*/\\.\\{1,2\\}\\'"))
          (files (loop for entry in
                      (apply 'skinny/directory-files
                             (concat skinny-root "/blog") excludes)
