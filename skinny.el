@@ -48,7 +48,7 @@
   :group 'skinny
   :type 'integer)
 
-(defcustom skinny-host "localhost"
+(defcustom skinny-host "*"
   "The interface to start talking hipster shite on."
   :group 'skinny
   :type 'string)
