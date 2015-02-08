@@ -53,8 +53,14 @@
   :group 'skinny
   :type 'string)
 
+(defcustom skinny-stuff-subdir "stuff"
+  "The directory used to store resources for skinny.
+It is located under skinny-root."
+  :group 'skinny
+  :type 'string)
+
 (defun skinny-page (httpcon)
-  (let ((css (concat skinny-root "/stuff/css/site.css"))
+  (let ((css (concat skinny-root "/" skinny-stuff-subdir "/css/site.css"))
         (body-header (concat skinny-root "/template/headerhtml"))
         (body-footer (concat skinny-root "/template/footerhtml"))
         (skinny-docroot (concat skinny-root "/blog"))
@@ -74,7 +80,7 @@
 
 (defun skinny-paste (httpcon)
   "Serve a paste."
-  (let ((css (concat skinny-root "/stuff/css/site.css"))
+  (let ((css (concat skinny-root "/" skinny-stuff-subdir "/css/site.css"))
         (body-header (concat skinny-root "/template/headerhtml"))
         (body-footer (concat skinny-root "/template/footerhtml"))
         (skinny-pasteroot (concat skinny-paste-root "/pastes"))
@@ -156,7 +162,7 @@ Finds the latest published post and makes that the page."
   (elnode-http-return httpcon "<?xml version='1.0'?>"))
 
 (defun skinny-index (httpcon)
-  (let ((css (concat skinny-root "/stuff/css/site.css")))
+  (let ((css (concat skinny-root "/" skinny-stuff-subdir "/css/site.css")))
     (elnode-http-start httpcon 200 '("Content-type" . "text/html"))
     (with-stdout-to-elnode httpcon
         (creole-wiki (concat skinny-root "/indexes/index.creole")
@@ -168,18 +174,18 @@ Finds the latest published post and makes that the page."
   "Skinny the blog engine's url router."
   (let ((webserver
          (elnode-webserver-handler-maker
-          (concat skinny-root "/stuff")))
+          (concat skinny-root "/" skinny-stuff-subdir)))
         (favicon-sender
          (elnode-make-send-file
           (concat
            (expand-file-name skinny-root)
-           "/stuff/ico/favicon.ico"))))
+           "/" skinny-stuff-subdir "/ico/favicon.ico"))))
     (elnode-hostpath-dispatcher
      httpcon
      `(("^[^/]+//blog/feed.xml$" . skinny-feed)
        ("^[^/]+//blog/\\(.*\\.creole\\)" . skinny-page)
        ("^[^/]+//blog/\\(.*\\)" . skinny-redirector)
-       ("^[^/]+//stuff/\\(.*\\)" . ,webserver)
+       (,(concat "^[^/]+//" skinny-stuff-subdir "/\\(.*\\)") . ,webserver)
        ("^[^/]+//index$" . skinny-index)
        ;; Deal with the favicon
        ("^[^/]+//favicon.ico" . ,favicon-sender)
