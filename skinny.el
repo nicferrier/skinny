@@ -53,6 +53,32 @@
   :group 'skinny
   :type 'string)
 
+(defcustom skinny-sort-posts-by-filename nil
+  "Sort blog posts by filename instead of by mtime.
+If you enable this option, files that match the following
+pattern:
+
+  <YEAR>_<MONTH>/<DAY>-<rest-of-file-name>
+
+will be sorted by date by skinny/list-published.  Any files
+that don't match that pattern are sorted below files with a date,
+and their order is undefined.
+
+For example, if you have the following files:
+
+  2015_01/22-stuff.creole
+  2015_02/05-more-stuff.creole
+  2015_02/07-newest.creolen
+  project/random-post.creole
+
+skinny/list-published will return:
+
+  (random-post.creole 22-stuff.creole 05-more-stuff.creole 07-newest.creole)
+
+Regardless of mtimes of the files."
+  :group 'skinny
+  :type 'boolean)
+
 (defun skinny-page (httpcon)
   (let ((css (concat skinny-root "/stuff/css/site.css"))
         (body-header (concat skinny-root "/template/headerhtml"))
@@ -129,10 +155,39 @@ Published files are those not in the `drafts' folder."
                    append (apply 'skinny/directory-files
                                  entry excludes))))
     (sort files
-          (lambda (a b)
-            (time-less-p
-             (elt (file-attributes a) 5)
-             (elt (file-attributes b) 5))))))
+          (if skinny-sort-posts-by-filename
+              #'skinny/date-earlier-p
+            (lambda (a b)
+              (time-less-p
+               (elt (file-attributes a) 5)
+               (elt (file-attributes b) 5)))))))
+
+(defun skinny/date-earlier-p (file-a file-b)
+  "Return non-nil if FILE-A's date is earlier than FILE-B's date.
+Files with dates must match the following pattern:
+
+  <YEAR>_<MONTH>/<DAY>-<rest-of-file-name>
+
+Any filename that doesn't match the pattern is considered to not
+have a date. A file without a date is considered earlier than a
+file with a date."
+  (let* ((to-date
+          (lambda (file)
+            (let (our-name our-match)
+              (setq our-name (replace-regexp-in-string
+                              (concat "^" (expand-file-name skinny-root) "/blog/")
+                              ""
+                              file))
+              (setq our-match (string-match
+                               "^\\([[:digit:]]\\{4\\}\\)_\\([[:digit:]]\\{2\\}\\)/\\([[:digit:]]\\{2\\}\\)-"
+                               our-name))
+              (if our-match
+                  (+ (* 10000 (string-to-number (match-string 1 our-name)))
+                     (* 100 (string-to-number (match-string 2 our-name)))
+                     (string-to-number (match-string 3 our-name)))
+                0))))
+         (sum-a (funcall to-date file-a)))
+    (or (= sum-a 0) (< sum-a (funcall to-date file-b)))))
 
 (defun skinny-homepage (httpcon)
   "The homepage.
