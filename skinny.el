@@ -191,6 +191,11 @@ Finds the latest published post and makes that the page."
   (interactive)
   (elnode-start 'skinny-router :port skinny-port :host skinny-host))
 
+;;;###autoload
+(defun skinny-stop ()
+  (interactive)
+  (elnode-stop skinny-port))
+
 (provide 'skinny)
 
 ;;; skinny.el ends here
