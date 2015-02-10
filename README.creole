@@ -62,6 +62,11 @@ Skinny Port: 8090
 Skinny Root: ~/myblog
     State : SAVED and set.
    The directory used tostore the skinny docroot.
+
+Skinny Stuff Subdir: stuff
+    State : STANDARD.
+   The directory used to store resources for skinny.
+   It is located under skinny-root.
 }}}
 
 Set {{{skinny-root}}} to the root directory of your blog and
