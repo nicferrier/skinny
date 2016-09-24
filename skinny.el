@@ -48,7 +48,7 @@
   :group 'skinny
   :type 'integer)
 
-(defcustom skinny-host "localhost"
+(defcustom skinny-host "*"
   "The interface to start talking hipster shite on."
   :group 'skinny
   :type 'string)
@@ -147,7 +147,7 @@ Published files are those not in the `drafts' folder."
   (let* ((excludes (list ".*/\\.*#.*"
                          ".*~"
                          ".*/drafts\\(/.*\\)*"
-                         ".*/\\."))
+                         ".*/\\.\\{1,2\\}\\'"))
          (files (loop for entry in
                      (apply 'skinny/directory-files
                             (concat skinny-root "/blog") excludes)
